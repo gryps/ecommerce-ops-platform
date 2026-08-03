@@ -15,9 +15,7 @@ from app.services.model_call_logs import record_business_model_call
 
 
 PROFILE_STORAGE_KEY = "model_profiles"
-BAILIAN_COMPATIBLE_BASE_URL = (
-    "https://ws-5ka5bo9o8zx2eboc.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
-)
+DEFAULT_COMPATIBLE_BASE_URL = ""
 PROFILE_STAGES = (
     ("copywriting", "文案生成"),
     ("speech_recognition", "音频转文案"),
@@ -45,7 +43,7 @@ def default_profiles() -> list[ModelProfile]:
         ModelProfile(
             stage=stage,
             label=label,
-            base_url=BAILIAN_COMPATIBLE_BASE_URL,
+            base_url=DEFAULT_COMPATIBLE_BASE_URL,
         )
         for stage, label in PROFILE_STAGES
     ]
