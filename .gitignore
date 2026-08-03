@@ -1,0 +1,47 @@
+# Local secrets and machine-specific config
+.env
+.env.*
+!.env.example
+UBUNTU_TEST_SECRET.txt
+
+# Python
+__pycache__/
+.pycache/
+*.py[cod]
+.pytest_cache/
+.venv/
+.venv_setup_test/
+
+# Node / Vite
+frontend/node_modules/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+frontend/dist/
+
+# Build and release artifacts
+dist/
+static-workbench/
+backups/
+outputs/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.sha256
+
+# Runtime databases and generated media/workspace data
+storage/*
+!storage/.gitkeep
+!storage/classification_cache/
+storage/classification_cache/*
+!storage/classification_cache/.gitkeep
+!storage/workspace/
+storage/workspace/*
+!storage/workspace/.gitkeep
+
+# Local logs and OS/editor noise
+*.log
+screenlog.*
+.DS_Store
+Thumbs.db
