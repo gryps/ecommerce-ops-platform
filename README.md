@@ -16,6 +16,16 @@
 
 详细规则和当前工程状态见 [PROJECT_CURRENT.md](PROJECT_CURRENT.md)。
 
+## 界面预览
+
+生产总览展示当前物料数量、结果状态和人工生产流程。
+
+![生产总览](docs/images/production-overview.png)
+
+内容文库用于沉淀文案、旁白字幕和音色资源。
+
+![内容文库音色库](docs/images/content-library-voices.png)
+
 ## 本地运行
 
 ```bash
