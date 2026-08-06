@@ -1,4 +1,6 @@
 # ShortsFlow Studio
+Keywords: Jianying draft generator, CapCut draft generator, short video workbench, asset library, copy library, voiceover
+library, subtitle library, background music library, ecommerce video workflow.
 
 An asset library and draft generator for CapCut/Jianying-ready projects using copy, narration, subtitles, and background music.
 
@@ -118,6 +120,9 @@ curl -sS http://127.0.0.1:8000/api/health
 ```
 
 ## 中文
+短视频工作台 / 剪映草稿生成器 / 内容库 / 旁白库 / 背景音乐库
+视频归类 -> 内容/旁白/BGM 选取 -> 生成剪映草稿 -> 剪映继续精修
+关键词：剪映草稿生成、CapCut 草稿生成、短视频工作台、视频素材库、内容库、旁白库、字幕库、背景音乐库、电商短视频流程。
 
 ShortsFlow Studio 是一个人工主导的产品短视频生产工作台。系统用于积累文案、旁白、字幕、音色和背景音乐素材，并把人工选择的物料组合直接生成可在剪映专业版继续编辑的草稿目录。
 
