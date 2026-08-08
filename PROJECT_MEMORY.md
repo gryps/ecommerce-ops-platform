@@ -101,12 +101,51 @@
 
 1. 先读本文件。
 2. 再读 `AGENTS.md`。
-3. 视频相关先读 `ecommerce-ops-platform/commerce-video-workbench/README.md` 和 `docs/02_prd.md`、`docs/03_workflow.md`，再读 `ecommerce-ops-platform/commerce-video-workbench/docs/engineering/PROJECT_DECISIONS.md` 和 `docs/engineering/CONTEXT_INDEX.md`。
-4. 图片相关先读本文件第 6、7 节；若是具体子模块开发，再优先读取 `ecommerce-ops-platform/ops-workbench/docs/modules/` 下对应的小上下文文档：
+3. 再读 `ecommerce-ops-platform/docs/DEVELOPMENT_COLLABORATION.md`，按“模块、范围、目标、禁止、验收、执行”界定任务。
+4. 视频相关先读 `ecommerce-ops-platform/commerce-video-workbench/README.md` 和 `docs/02_prd.md`、`docs/03_workflow.md`，再读 `ecommerce-ops-platform/commerce-video-workbench/docs/engineering/PROJECT_DECISIONS.md` 和 `docs/engineering/CONTEXT_INDEX.md`。
+5. 图片相关先读本文件第 6、7 节和 `ecommerce-ops-platform/commerce-image-workbench/docs/08_handoff.md`；若是具体子模块开发，再优先读取 `ecommerce-ops-platform/ops-workbench/docs/modules/` 下对应的小上下文文档：
    - 摄影素材与人工产品组：`image-source-grouping.md`
    - 产品档案与平台模板：`image-platform-templates.md`
    - AI 出图任务：`image-generation-tasks.md`
    - 图片审核与交付选图：`image-review-delivery.md`
    - 平台上传与草稿：`platform-autofill.md`
-5. 只有需要追溯业务背景时，再读取 `commerce-image-workbench/docs/` 原始文档。
-6. 若旧文档与用户后续修正冲突，采用用户后续修正。
+6. 只有需要追溯业务背景时，再读取 `commerce-image-workbench/docs/` 原始文档。
+7. 若旧文档与用户后续修正冲突，采用用户后续修正。
+
+## 9. 后续协作范式
+
+为降低上下文消耗、防止跨模块误改，后续开发任务优先按以下格式沟通：
+
+```text
+模块：
+范围：
+目标：
+禁止：
+验收：
+执行：
+```
+
+- **模块**：本次只处理哪个业务模块。
+- **范围**：允许阅读和修改哪些文件、页面、接口或数据库结构。
+- **目标**：用户最终要看到的业务结果。
+- **禁止**：本次明确不能改动或不能恢复的旧能力。
+- **验收**：完成标准和测试方式。
+- **执行**：只分析、修改代码、跑测试、提交、推送等动作边界。
+
+如果需求还没界定清楚，先要求助手“拆成模块、范围、目标、禁止、验收、执行，再开发”。
+
+前端细节修改另按以下格式补充定位信息：
+
+```text
+前端修改：
+页面：
+区域：
+元素文字：
+当前问题：
+期望效果：
+不要动：
+验收：
+执行：
+```
+
+定位优先使用一级菜单、二级页面、区域名称、元素文字和截图红框/箭头。若只需调整按钮、文本、对齐、间距、弹窗、缩略图或表格列，应明确“只改前端/只改样式/不改后台逻辑”。

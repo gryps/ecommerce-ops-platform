@@ -106,3 +106,24 @@ curl --max-time 5 -sS http://127.0.0.1:8000/api/health
 - `/mnt/e/codexwork/PROJECT_MEMORY.md`；
 - `docs/engineering/PROJECT_DECISIONS.md` 或对应模块文档；
 - 如涉及交互名称，更新 `docs/engineering/UI_FUNCTION_CATALOG.md`。
+
+## 9. 后续协作方式
+
+继续开发视频生产时，优先按以下格式给任务，减少上下文并避免误改图片生产或模型配置：
+
+```text
+模块：
+范围：
+目标：
+禁止：
+验收：
+执行：
+```
+
+详细规范见：
+
+```text
+/mnt/e/codexwork/ecommerce-ops-platform/docs/DEVELOPMENT_COLLABORATION.md
+```
+
+如果任务只涉及视频生产，应明确写出“不改电商图片生产、不改模型配置”。

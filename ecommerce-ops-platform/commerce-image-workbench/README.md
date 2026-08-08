@@ -41,6 +41,7 @@
 - [数据结构草案](docs/05_data_model.md)
 - [AI 模型与提示词方案](docs/06_ai_prompting.md)
 - [MVP 开发计划](docs/07_mvp_plan.md)
-- [交接文档](docs/08_handoff.md)
+- [交接文档](docs/08_handoff.md)：当前最终口径和未完成项
+- [后续开发协作规范](../docs/DEVELOPMENT_COLLABORATION.md)
 
 历史交接归档位于 `docs/archive/`。
