@@ -8,6 +8,7 @@
 
 - 视频生产：`../commerce-video-workbench/`
 - 图片生产：`../commerce-image-workbench/`
+- 运行代码模块上下文：`docs/modules/`
 - 全局口径：`/mnt/e/codexwork/PROJECT_MEMORY.md`
 
 ## 运行数据目录

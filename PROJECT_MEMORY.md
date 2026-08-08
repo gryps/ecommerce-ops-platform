@@ -102,5 +102,11 @@
 1. 先读本文件。
 2. 再读 `AGENTS.md`。
 3. 视频相关先读 `ecommerce-ops-platform/commerce-video-workbench/README.md` 和 `docs/02_prd.md`、`docs/03_workflow.md`，再读 `ecommerce-ops-platform/commerce-video-workbench/docs/engineering/PROJECT_DECISIONS.md` 和 `docs/engineering/CONTEXT_INDEX.md`。
-4. 图片相关读本文件第 6、7 节，再按需读取 `commerce-image-workbench/docs/` 原始文档。
-5. 若旧文档与用户后续修正冲突，采用用户后续修正。
+4. 图片相关先读本文件第 6、7 节；若是具体子模块开发，再优先读取 `ecommerce-ops-platform/ops-workbench/docs/modules/` 下对应的小上下文文档：
+   - 摄影素材与人工产品组：`image-source-grouping.md`
+   - 产品档案与平台模板：`image-platform-templates.md`
+   - AI 出图任务：`image-generation-tasks.md`
+   - 图片审核与交付选图：`image-review-delivery.md`
+   - 平台上传与草稿：`platform-autofill.md`
+5. 只有需要追溯业务背景时，再读取 `commerce-image-workbench/docs/` 原始文档。
+6. 若旧文档与用户后续修正冲突，采用用户后续修正。
