@@ -1,157 +1,81 @@
-# ShortsFlow Studio
-Keywords: Jianying draft generator, CapCut draft generator, short video workbench, asset library, copy library, voiceover
-library, subtitle library, background music library, ecommerce video workflow.
+# 电商运营平台
 
-An asset library and draft generator for CapCut/Jianying-ready projects using copy, narration, subtitles, and background music.
+Version: 2.0.0
 
-## English
-
-ShortsFlow Studio is a human-first short video production workbench. It helps teams accumulate reusable copy, narration, subtitle, voice, and background music assets, then combine selected assets into editable Jianying/CapCut draft folders.
-
-Current workflow:
+电商运营平台把电商视频生产、电商图片生产和模型配置整合到同一个本地工作台。当前可运行代码位于：
 
 ```text
-Select source videos -> confirm product and tags -> move and rename videos by product
--> prepare copy, narration/subtitles, and background music -> select assets manually
--> generate a Jianying/CapCut draft
+ecommerce-ops-platform/ops-workbench/
 ```
 
-Key features:
+业务文档按模块归档：
 
-- Classify source videos by product and tags, then move and rename original files without copying them into a separate workspace.
-- Maintain content, narration/subtitle, voice, and background music libraries.
-- Search and select assets manually before generating a draft.
-- Generate video-free draft folders directly inside the confirmed Jianying draft directory.
-- Add timestamps to draft names.
-- Warn when the same asset combination has been generated before, without blocking generation.
-- Keep draft records in the workbench while allowing records to be deleted independently from disk folders.
+- `ecommerce-ops-platform/commerce-video-workbench/`：电商视频生产文档。
+- `ecommerce-ops-platform/commerce-image-workbench/`：电商图片生产文档。
+- `PROJECT_MEMORY.md`：当前最终业务口径和长期约定。
 
-For detailed requirements and current engineering state, see [PROJECT_CURRENT.md](PROJECT_CURRENT.md).
+## 2.0 主要功能
 
-## Screenshots
+### 电商图片生产
 
-Production overview shows material counts, result status, and the manual production flow.
+图片生产模块面向“实拍原图 → 产品档案 → AI 商品图 → 平台草稿”的流程：
 
-![Production overview](docs/images/production-overview.png)
+- 摄影师上传商品实拍原图到摄影素材库。
+- 运营人员人工勾选同一产品照片，填写唯一产品名称，创建产品组和产品档案。
+- 系统生成不可修改的产品序列号；产品名称不可重复。
+- 不使用 AI 自动分组，原始照片不会被多个产品组复用。
+- 删除产品档案时，默认把原始照片退回待分配区；也可选择连同原图一起删除。
+- AI 出图按产品执行，默认覆盖白底图、环境搭配图、佩戴图、商详图等类型。
+- 出图任务支持进度、终止、删除、失败重试和结果审核。
+- 只有人工选中的 AI 图进入平台图片槽位。
+- 平台模板支持自定义字段和图片槽位，适配抖音、快手、视频号等不同平台字段要求。
+- 用户先登录指定浏览器，系统基于已有登录态自动填写字段、上传图片，并只保存平台草稿，不自动发布。
 
-The content library stores copy, narration/subtitle, and voice resources.
+### 电商视频生产
 
-![Content library voices](docs/images/content-library-voices.png)
+视频生产模块面向人工主导的短视频素材和剪映草稿生产：
 
-## Local Setup
+- 维护产品、标签和素材归类。
+- 按产品和标签移动并重命名原视频文件。
+- 管理文案、旁白字幕、音色试听和背景音乐库。
+- 从本地音频或短视频链接提取背景音乐。
+- 人工选择文案、旁白字幕和背景音乐后生成可继续编辑的剪映草稿。
+- 重复物料组合会提示历史生成次数，但不阻止继续生成。
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements-dev.txt
-.venv/bin/alembic upgrade head
-npm --prefix frontend run build
-```
+### 模型配置
 
-Development server:
+模型配置统一管理各业务环节的百炼兼容模型连接：
 
-```bash
-bash scripts/run_dev.sh
-```
+- 文案生成
+- 原图分析与提示词
+- AI 商品生图
+- 音频转文案
+- 字幕配音
 
-User-level systemd service:
+API Key 和本机运行配置保存在运行目录 `.env`，不放入代码目录，不提交到 Git。
 
-```bash
-systemctl --user status product-video-automation
-systemctl --user restart product-video-automation
-journalctl --user -u product-video-automation -f
-```
-
-Open `http://127.0.0.1:8000/workbench/` locally. The service can also be accessed from other computers on the LAN through `http://SERVER_LAN_IP:8000/workbench/`. On first access, initialize the administrator account.
-
-## Current Workflow API
-
-Business APIs are under `/api/v1`. Human-first material, copy, narration, and draft APIs are under `/api/v1/human`:
+## 项目结构
 
 ```text
-POST      /material-classifications
-GET       /classified-materials
-GET       /classified-materials/{asset_id}/video
-
-GET/POST  /api/v1/products
-PATCH     /api/v1/products/{product_id}
-GET/POST  /tag-categories
-GET/POST  /tags
-
-POST      /copies/iterations
-POST      /copies/iterations/{record_id}/continue
-GET/DELETE /copies/iterations[/{record_id}]
-GET       /copies/library
-PATCH     /copies/{content_id}/review
-
-POST      /copies/audio-to-text
-GET/POST  /narrations/...
-GET       /narrations/{id}/audio
-DELETE    /narrations/{id}
-POST      /voice-preview
-GET       /voice-catalog
-GET       /voice-catalog/{sequence}
-GET/POST  /jianying-drafts
-POST      /jianying-drafts/duplicate-count
-POST      /jianying-drafts/duplicate-counter/reset
-DELETE    /jianying-drafts/{draft_id}
-
-GET/PUT   /api/v1/model-profiles
-GET/POST  /api/v1/music-resources/...
+.
+├── PROJECT_MEMORY.md
+├── AGENTS.md
+└── ecommerce-ops-platform/
+    ├── README.md
+    ├── ops-workbench/              # 可运行代码
+    ├── ops-workbench-runtime/      # 本地运行数据，已 gitignore
+    ├── commerce-video-workbench/   # 视频生产文档
+    └── commerce-image-workbench/   # 图片生产文档
 ```
-
-APIs require an administrator Bearer Token. The complete contract is available from `/openapi.json`.
-
-## Output
-
-- Jianying/CapCut draft baseline: vertical 1080x1920, 30fps.
-- Drafts are written directly into the confirmed Jianying draft directory.
-- Draft folders contain `draft_content.json`, `draft_info.json`, and `draft_meta_info.json`.
-- Drafts do not generate video tracks.
-- Copy, subtitles/narration, and background music are written into text and audio tracks.
-- Audio files are copied into the draft-local `assets/audio` directory to avoid missing audio references when opened in Jianying.
-
-Media probing and music extraction require `ffmpeg` and `ffprobe`.
-
-Health check:
-
-```bash
-curl -sS http://127.0.0.1:8000/api/health
-```
-
-## 中文
-短视频工作台 / 剪映草稿生成器 / 内容库 / 旁白库 / 背景音乐库
-视频归类 -> 内容/旁白/BGM 选取 -> 生成剪映草稿 -> 剪映继续精修
-关键词：剪映草稿生成、CapCut 草稿生成、短视频工作台、视频素材库、内容库、旁白库、字幕库、背景音乐库、电商短视频流程。
-
-ShortsFlow Studio 是一个人工主导的产品短视频生产工作台。系统用于积累文案、旁白、字幕、音色和背景音乐素材，并把人工选择的物料组合直接生成可在剪映专业版继续编辑的草稿目录。
-
-当前流程：
-
-```text
-选择原视频 -> 确认产品和标签 -> 移动到产品文件夹并重命名
--> 准备文案内容、旁白/字幕和背景音乐 -> 人工选择资源 -> 生成剪映草稿
-```
-
-主要功能：
-
-- 素材归类：维护产品与标签，按产品和标签移动并重命名原视频，不复制到工作区。
-- 内容文库：沉淀文案内容、旁白字幕和音色资源。
-- 背景音乐：上传本地音频或从短视频链接提取音频，试听后维护名称和标签。
-- 剪映草稿：确认剪映草稿目录，从三库中模糊查询并选择物料，生成不含视频轨道的半成品草稿。
-- 草稿名称带时间戳。
-- 重复物料组合会弹窗提示历史生成次数，但不阻止继续生成。
-- 剪映草稿记录可在工作台删除，删除记录不会删除磁盘上的草稿目录。
-
-详细规则和当前工程状态见 [PROJECT_CURRENT.md](PROJECT_CURRENT.md)。
 
 ## 本地运行
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+cd ecommerce-ops-platform/ops-workbench
+python3 -m venv /mnt/e/codexwork/.venv
+source /mnt/e/codexwork/.venv/bin/activate
 pip install -r requirements-dev.txt
-.venv/bin/alembic upgrade head
+/mnt/e/codexwork/.venv/bin/alembic upgrade head
 npm --prefix frontend run build
 ```
 
@@ -169,8 +93,32 @@ systemctl --user restart product-video-automation
 journalctl --user -u product-video-automation -f
 ```
 
-本机打开 `http://127.0.0.1:8000/workbench/`。服务监听局域网接口，其他电脑可使用 `http://服务器局域网IP:8000/workbench/` 访问；首次访问时初始化管理员账号。
+本机打开：
 
-生产环境只需要 `requirements.txt`；运行测试时安装 `requirements-dev.txt`。模型日志留存清理由 Web 服务内置任务执行，不需要 Redis 或独立 Worker。
+```text
+http://127.0.0.1:8000/workbench/
+```
 
-当前源码、ORM 和数据库不再包含旧人工粗剪、批次扫描、候选片段、质量审核、框架、卡点、自动混剪、系统内渲染、成片和热播模块。历史 Alembic 文件保留用于旧库顺序升级。
+健康检查：
+
+```bash
+curl -sS http://127.0.0.1:8000/api/health
+```
+
+## 验证
+
+```bash
+cd ecommerce-ops-platform/ops-workbench
+npm --prefix frontend run build
+/mnt/e/codexwork/.venv/bin/python -B -m pytest tests/test_current_workflow.py -q
+```
+
+## 运行数据边界
+
+日常使用中会增长的数据库、上传素材、AI 结果、浏览器 profile、缓存和构建产物默认放在：
+
+```text
+ecommerce-ops-platform/ops-workbench-runtime/
+```
+
+该目录已被 Git 忽略。仓库不提交数据库、素材、`.env`、node_modules、venv、缓存和本地构建产物。

@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 UBUNTU_TEST_SECRET.txt
+.proxy/
 
 # Python
 __pycache__/
@@ -39,6 +40,17 @@ storage/classification_cache/*
 !storage/workspace/
 storage/workspace/*
 !storage/workspace/.gitkeep
+
+# Nested project layout
+ecommerce-ops-platform/ops-workbench/frontend/node_modules/
+ecommerce-ops-platform/ops-workbench/frontend/*.tsbuildinfo
+ecommerce-ops-platform/ops-workbench/frontend/vite.config.js
+ecommerce-ops-platform/ops-workbench/frontend/vite.config.d.ts
+ecommerce-ops-platform/ops-workbench/static-workbench/
+ecommerce-ops-platform/ops-workbench/backups/
+ecommerce-ops-platform/ops-workbench/outputs/
+ecommerce-ops-platform/ops-workbench-runtime/
+ecommerce-ops-platform/ops-workbench/storage/
 
 # Local logs and OS/editor noise
 *.log
