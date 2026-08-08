@@ -9,6 +9,8 @@ from pydantic import BaseModel, Field
 class BootstrapRequest(BaseModel):
     username: str = Field(min_length=3, max_length=80)
     password: str = Field(min_length=10, max_length=200)
+    display_name: str = Field(default="", max_length=80)
+    phone: str = Field(default="", max_length=40)
 
 
 class LoginRequest(BaseModel):
@@ -23,7 +25,19 @@ class BootstrapStatusResponse(BaseModel):
 class UserResponse(BaseModel):
     id: str
     username: str
+    display_name: str
+    phone: str
     is_active: bool
+
+
+class UserProfileUpdateRequest(BaseModel):
+    display_name: str = Field(default="", max_length=80)
+    phone: str = Field(default="", max_length=40)
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(min_length=10, max_length=200)
 
 
 class LoginResponse(BaseModel):

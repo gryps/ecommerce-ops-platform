@@ -19,7 +19,7 @@ function apiErrorMessage(payload: unknown, status: number): string {
     const messages = detail.map((item) => {
       const error = item as { loc?: unknown[]; msg?: unknown };
       const field = String(error.loc?.at(-1) ?? "");
-      const label = { username: "账号", password: "密码" }[field] ?? field;
+      const label = { username: "账号", password: "密码", current_password: "当前密码", new_password: "新密码" }[field] ?? field;
       const rawMessage = typeof error.msg === "string" ? error.msg : "输入内容无效";
       const minimum = rawMessage.match(/at least (\d+) characters?/i);
       if (minimum) return `${label}至少需要 ${minimum[1]} 个字符`;

@@ -4,7 +4,7 @@ import shutil
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import func, select
-from app.api.v1.schemas import BootstrapRequest, BootstrapStatusResponse, LoginRequest, LoginResponse, MusicResourceLinkRequest, MusicResourceResponse, MusicResourceUpdateRequest, ProductCreateRequest, ProductResponse, ProductUpdateRequest, UserResponse
+from app.api.v1.schemas import BootstrapRequest, BootstrapStatusResponse, LoginRequest, LoginResponse, MusicResourceLinkRequest, MusicResourceResponse, MusicResourceUpdateRequest, PasswordChangeRequest, ProductCreateRequest, ProductResponse, ProductUpdateRequest, UserProfileUpdateRequest, UserResponse
 from app.ai import is_supported_speech_recognition_model, list_openai_compatible_models, load_model_profiles, models_for_profile_stage, save_model_profiles, test_openai_compatible_profile
 from app.models import ModelProfile, ModelProfilesResponse, ModelProfilesUpdateRequest
 from app.core.database import session_scope
@@ -12,7 +12,7 @@ from app.core.security import utc_now
 from app.domain.models import AdminUser, MediaAsset, MusicResource, Product
 from app.services.audit import record_audit
 from app.services.model_call_logs import clear_model_call_logs, model_call_log_detail, model_call_log_page, model_call_summary
-from app.services.auth import bearer_token, bootstrap_admin, bootstrap_status, create_login_session, delete_login_session, require_admin
+from app.services.auth import bearer_token, bootstrap_admin, bootstrap_status, change_admin_password, create_login_session, delete_login_session, require_admin, update_admin_profile
 from app.services.music_resources import create_link_music, create_uploaded_music, delete_music_resource
 from app.services.product_library import create_product, duplicate_product_name, product_code
 from app.api.v1.human_workflow import router as human_workflow_router
@@ -123,7 +123,7 @@ def list_workbench_profile_models(profile: ModelProfile, _admin: AdminUser=Depen
     return {'models': models}
 
 def user_response(user: AdminUser) -> UserResponse:
-    return UserResponse(id=user.id, username=user.username, is_active=user.is_active)
+    return UserResponse(id=user.id, username=user.username, display_name=user.display_name, phone=user.phone, is_active=user.is_active)
 
 def product_response(session, product: Product) -> ProductResponse:
     asset_count = session.scalar(select(func.count(MediaAsset.id)).where(MediaAsset.product_id == product.id)) or 0
@@ -142,7 +142,7 @@ def get_auth_status() -> BootstrapStatusResponse:
 def bootstrap(payload: BootstrapRequest) -> UserResponse:
     with session_scope() as session:
         try:
-            user = bootstrap_admin(session, payload.username, payload.password)
+            user = bootstrap_admin(session, payload.username, payload.password, payload.display_name, payload.phone)
         except ValueError as exc:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
         return user_response(user)
@@ -159,6 +159,24 @@ def login(payload: LoginRequest) -> LoginResponse:
 @router.get('/auth/me', response_model=UserResponse)
 def me(admin: AdminUser=Depends(require_admin)) -> UserResponse:
     return user_response(admin)
+
+@router.patch('/auth/me', response_model=UserResponse)
+def update_me(payload: UserProfileUpdateRequest, admin: AdminUser=Depends(require_admin)) -> UserResponse:
+    with session_scope() as session:
+        try:
+            user = update_admin_profile(session, admin.id, payload.display_name, payload.phone)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        return user_response(user)
+
+@router.post('/auth/me/password', status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
+def change_my_password(payload: PasswordChangeRequest, admin: AdminUser=Depends(require_admin)) -> Response:
+    with session_scope() as session:
+        try:
+            change_admin_password(session, admin.id, payload.current_password, payload.new_password)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.post('/auth/logout', status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 def logout(request: Request, admin: AdminUser=Depends(require_admin)) -> Response:

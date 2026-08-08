@@ -72,8 +72,10 @@ from app.models import ModelProfile
 from app.services.auth import (
     bootstrap_admin,
     bootstrap_status,
+    change_admin_password,
     create_login_session,
     delete_login_session,
+    update_admin_profile,
 )
 from app.services.jianying_drafts import (
     create_jianying_draft,
@@ -474,11 +476,19 @@ def test_model_voice_sequence_resolves_catalog_without_asr(workbench_database, m
 def test_auth_bootstrap_login_and_logout(workbench_database):
     with session_scope() as session:
         assert bootstrap_status(session) is False
-        user = bootstrap_admin(session, "admin", "long-test-password")
+        user = bootstrap_admin(session, "admin", "long-test-password", "管理员", "13800000000")
         user_id = user.id
+        assert user.display_name == "管理员"
+        assert user.phone == "13800000000"
+    with session_scope() as session:
+        updated = update_admin_profile(session, user_id, "运营负责人", "13900000000")
+        assert updated.display_name == "运营负责人"
+        assert updated.phone == "13900000000"
+    with session_scope() as session:
+        change_admin_password(session, user_id, "long-test-password", "longer-test-password")
     with session_scope() as session:
         user, token, auth_session = create_login_session(
-            session, "admin", "long-test-password"
+            session, "admin", "longer-test-password"
         )
         assert user.id == user_id
         assert auth_session.token_hash != token

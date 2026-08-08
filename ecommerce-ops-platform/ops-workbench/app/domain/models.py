@@ -33,6 +33,8 @@ class AdminUser(Base):
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
     username: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
+    display_name: Mapped[str] = mapped_column(String(80), nullable=False, default="")
+    phone: Mapped[str] = mapped_column(String(40), nullable=False, default="")
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

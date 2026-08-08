@@ -23,13 +23,18 @@ def bootstrap_status(session: Session) -> bool:
     return session.scalar(select(AdminUser.id).limit(1)) is not None
 
 
-def bootstrap_admin(session: Session, username: str, password: str) -> AdminUser:
+def bootstrap_admin(session: Session, username: str, password: str, display_name: str = "", phone: str = "") -> AdminUser:
     if bootstrap_status(session):
         raise ValueError("管理员账号已经初始化")
     normalized = username.strip()
     if len(normalized) < 3:
         raise ValueError("账号至少需要3个字符")
-    user = AdminUser(username=normalized, password_hash=hash_password(password))
+    user = AdminUser(
+        username=normalized,
+        display_name=display_name.strip(),
+        phone=phone.strip(),
+        password_hash=hash_password(password),
+    )
     session.add(user)
     session.flush()
     record_audit(
@@ -38,9 +43,47 @@ def bootstrap_admin(session: Session, username: str, password: str) -> AdminUser
         action="auth.bootstrap",
         object_type="user",
         object_id=user.id,
-        after={"username": user.username},
+        after={"username": user.username, "display_name": user.display_name, "phone": user.phone},
     )
     return user
+
+
+def update_admin_profile(session: Session, user_id: str, display_name: str, phone: str) -> AdminUser:
+    user = session.get(AdminUser, user_id)
+    if user is None:
+        raise ValueError("账号不存在")
+    before = {"display_name": user.display_name, "phone": user.phone}
+    user.display_name = display_name.strip()
+    user.phone = phone.strip()
+    record_audit(
+        session,
+        actor_id=user.id,
+        action="auth.profile.update",
+        object_type="user",
+        object_id=user.id,
+        before=before,
+        after={"display_name": user.display_name, "phone": user.phone},
+    )
+    session.flush()
+    return user
+
+
+def change_admin_password(session: Session, user_id: str, current_password: str, new_password: str) -> None:
+    user = session.get(AdminUser, user_id)
+    if user is None:
+        raise ValueError("账号不存在")
+    if not verify_password(current_password, user.password_hash):
+        raise ValueError("当前密码错误")
+    user.password_hash = hash_password(new_password)
+    record_audit(
+        session,
+        actor_id=user.id,
+        action="auth.password.change",
+        object_type="user",
+        object_id=user.id,
+        after={"changed": True},
+    )
+    session.flush()
 
 
 def create_login_session(session: Session, username: str, password: str) -> tuple[AdminUser, str, AuthSession]:

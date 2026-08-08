@@ -5,6 +5,8 @@ export type PlatformModule = "video" | "images" | "models";
 export type User = {
   id: string;
   username: string;
+  display_name: string;
+  phone: string;
   is_active: boolean;
 };
 

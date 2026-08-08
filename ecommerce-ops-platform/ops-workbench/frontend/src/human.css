@@ -34,13 +34,35 @@ button { cursor: pointer; }
 .human-shell.sidebar-collapsed nav button,
 .human-shell.sidebar-collapsed .human-logout { justify-content: center; gap: 0; padding-inline: 0; }
 .human-shell.sidebar-collapsed .platform-module-switch { margin-bottom: 14px; padding-bottom: 14px; }
-.human-shell header { height: 92px; display: flex; align-items: center; justify-content: space-between; padding: 0 34px; border-bottom: 1px solid #dce1dc; background: #fafbf9; }
+.human-shell header { position: sticky; top: 0; z-index: 4; height: 92px; display: grid; grid-template-columns: minmax(170px, 1fr) minmax(280px, 520px) minmax(82px, 1fr); align-items: center; gap: 22px; padding: 0 34px; border-bottom: 1px solid #dce1dc; background: #fafbf9; box-shadow: 0 7px 18px rgb(31 42 34 / 5%); }
+.human-title-block { min-width: 170px; }
 .human-shell header h1 { margin: 4px 0 0; font-size: 23px; }
 .human-shell header small { color: #748078; font-size: 11px; font-weight: 650; }
-.human-banner { display: flex; align-items: center; height: 68px; margin: 18px 34px 0; padding: 11px 15px; overflow-y: auto; box-sizing: border-box; border: 1px solid; border-radius: 5px; font-size: 12px; font-weight: 650; line-height: 1.55; box-shadow: 0 5px 16px rgb(31 42 34 / 5%); }
-.human-banner.success { border-color: #bfd5b4; background: #f0f7ec; color: #355e2d; }
-.human-banner.error { border-color: #e2bbb7; background: #fff2f1; color: #963a34; }
-.human-banner.is-empty { visibility: hidden; }
+.human-operation-status { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 9px; min-width: 0; height: 42px; padding: 0 13px; border: 1px solid #d4dad4; border-radius: 5px; background: white; color: #536057; font-size: 11px; line-height: 1.35; }
+.human-user-summary { justify-self: end; display: grid !important; grid-template-columns: 18px minmax(0, 1fr); align-items: center; gap: 9px !important; width: 150px; min-height: 42px !important; padding: 0 12px !important; border-color: #d4dad4 !important; background: white !important; color: #334039 !important; text-align: left; }
+.human-user-summary > svg { width: 18px !important; color: #587a3f; }
+.human-user-summary span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 750; }
+.human-operation-status b { color: #2f3a33; font-size: 11px; white-space: nowrap; }
+.human-operation-status span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.human-operation-status.success { border-color: #bfd5b4; background: #f0f7ec; color: #355e2d; }
+.human-operation-status.error { border-color: #e2bbb7; background: #fff2f1; color: #963a34; }
+.human-operation-status.busy { border-color: #c8d9bf; background: #f4f9f1; color: #416136; }
+.human-operation-status.idle { color: #748078; }
+.account-dialog-backdrop { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: 24px; background: rgb(18 27 21 / 46%); }
+.account-dialog { width: min(560px, calc(100vw - 48px)); display: grid; gap: 16px; padding: 24px; border: 1px solid #d8ded8; border-top: 4px solid #587a3f; border-radius: 7px; background: white; box-shadow: 0 24px 70px rgb(14 24 17 / 30%); }
+.account-dialog-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid #e2e7e1; }
+.account-dialog-title > div { display: grid; gap: 5px; min-width: 0; }
+.account-dialog-title b { color: #27322b; font-size: 16px; }
+.account-dialog-title span { color: #707c74; font-size: 11px; }
+.account-dialog-title button { flex: none; }
+.account-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.account-form.password { grid-template-columns: 1fr; padding-top: 16px; border-top: 1px solid #e2e7e1; }
+.account-form.password > div { display: flex; align-items: center; gap: 8px; color: #334039; font-size: 13px; font-weight: 750; }
+.account-form.password > div svg { width: 17px; color: #587a3f; }
+.account-form label { display: grid; gap: 6px; color: #647068; font-size: 11px; font-weight: 650; }
+.account-form button { min-width: 132px; white-space: nowrap; }
+.account-dialog-message { margin: 0; padding: 10px 12px; border: 1px solid #bfd5b4; background: #f0f7ec; color: #355e2d; font-size: 11px; line-height: 1.55; }
+.account-dialog-message.error { border-color: #e2bbb7; background: #fff2f1; color: #963a34; }
 .human-shell button, .human-auth button { min-height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 14px; border: 1px solid #54723d; border-radius: 5px; background: #587a3f; color: white; font-weight: 650; }
 .human-shell button svg, .human-auth button svg { width: 16px; }
 .human-shell button:hover { filter: brightness(.96); }
