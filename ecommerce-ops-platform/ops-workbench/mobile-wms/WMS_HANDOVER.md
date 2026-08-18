@@ -1,152 +1,184 @@
-# 移动仓库管理系统交接文档
+# Gryps 电商运营系统移动端交接文档
 
-生成时间：2026-08-14
-部署服务器：通过本地命令 `ssh center` 连接
+更新时间：2026-08-19（Asia/Shanghai）
 
-## 1. 系统概况
+## 1. 系统定位
 
-本系统是一个兼容移动端浏览器的 H5 仓库管理系统，前端为静态 HTML/CSS/JavaScript，后端为 Python 标准库 HTTP API，数据存储使用 SQLite。
+本目录承载电商运营平台里的移动 H5 终端。当前页面名称统一为：
 
-当前主要业务范围：
+- 登录前：`Gryps电商运营系统`
+- 登录后：`Gryps电商运营系统`
+- 浏览器标题：`Gryps 电商运营平台`
 
-- 商品资料管理
-- 到货入库
-- 退货入库
-- 领用入库
-- 销售出库
-- 领用出库
-- 移动盘点
-- 库存流水查询
+移动端当前作为统一入口使用：用户登录后，根据账号被分配的模块，进入对应业务模块。当前已接入：
+
+- 用户与权限
+- 仓储管理
+
+仓储管理来自原“移动仓库管理系统”，业务能力继续保留：
+
+- 商品资料
+- 到货入库、退货入库、领用入库
+- 销售出库、领用出库
+- 盘点
+- 库存流水
 - 流水作废与自动冲销
 - CSV 流水导出
-- 用户管理与角色权限
 
-## 2. 访问地址
+## 2. 当前部署
 
-当前公网访问地址：
-
-- `http://121.41.166.116:8000/`
-
-域名解析生效后可访问：
-
-- `http://www.grypszhang.com:8000/`
-
-说明：当前尚未启用 HTTPS。正式公网使用建议后续开放 `443` 端口并配置 Let's Encrypt 免费证书，目标访问方式为：
-
-- `https://www.grypszhang.com/`
-
-## 3. 部署目录与核心文件
-
-项目部署目录：
-
-- `/opt/wms-h5/`
-
-核心文件：
-
-- `/opt/wms-h5/index.html`：前端 H5 页面
-- `/opt/wms-h5/assets/styles.css`：前端样式
-- `/opt/wms-h5/assets/app.js`：前端交互逻辑
-- `/opt/wms-h5/api.py`：Python 后端 API
-- `/opt/wms-h5/wms.db`：SQLite 数据库
-- `/etc/nginx/sites-available/wms-h5`：nginx 站点配置
-- `/etc/nginx/sites-enabled/wms-h5`：nginx 启用配置链接或配置文件
-- `wms-api`：systemd 后端服务名
-
-## 4. 运行架构
-
-当前端口：
-
-- `8000`：nginx 对公网监听，提供 H5 页面并反向代理 API
-- `8001`：Python API，仅监听 `127.0.0.1`，不直接对公网开放
-
-请求路径：
+线上入口：
 
 ```text
-浏览器/手机 -> http://服务器:8000 -> nginx
-nginx /api/* -> http://127.0.0.1:8001/api/* -> Python API -> SQLite
+http://120.26.176.178:8000/
 ```
 
-当前监听状态应类似：
+云服务器：
 
 ```text
-0.0.0.0:8000      nginx
-127.0.0.1:8001   python3 / wms-api
+SSH 别名：aliyun-ecom
+部署目录：/opt/wms-h5
+公网端口：8000
+后端端口：127.0.0.1:8001
+服务名：wms-api.service
 ```
 
-## 5. 服务管理命令
+数据库：
 
-查看后端服务状态：
-
-```bash
-systemctl status wms-api
-systemctl is-active wms-api
+```text
+类型：阿里云 RDS PostgreSQL
+业务库：mobile_wms
+应用账号：mobile_wms_app
+连接配置：/etc/wms-h5.env
 ```
 
-重启后端：
+注意：
 
-```bash
-systemctl restart wms-api
+- 文档和 Git 里不记录数据库密码、SSH 私钥、API key 或完整数据库连接串。
+- 后端只监听本机 `127.0.0.1:8001`，公网只开放 nginx 入口。
+- 当前阿里云安全组只开放 `8000-8010` 等指定端口，移动端生产入口使用 `8000`。
+- 当前仍为 HTTP。摄像头扫码、PWA 安装等能力需要后续配置 HTTPS 后再启用。
+
+## 3. 代码与运行文件边界
+
+本地源码目录：
+
+```text
+/Users/gryps/ecom/ops-workbench/mobile-wms
 ```
 
-查看后端日志：
+线上运行目录：
 
-```bash
-journalctl -u wms-api -n 100 --no-pager
-journalctl -u wms-api -f
+```text
+/opt/wms-h5
 ```
 
-检查并重载 nginx：
+运行配置：
 
-```bash
-nginx -t
-systemctl reload nginx
+```text
+/etc/wms-h5.env
 ```
 
-检查端口：
+本目录纳入 Git 的文件：
 
-```bash
-ss -ltnp | grep -E ':8000|:8001'
+- `index.html`：页面骨架和静态资源引用。
+- `assets/styles.css`：移动端样式。
+- `assets/app.js`：移动端交互、路由、渲染和 API 调用。
+- `api.py`：Python HTTP API。
+- `README.md`：本地维护说明。
+- `WMS_HANDOVER.md`：本交接文档。
+
+不纳入 Git 的内容：
+
+- 数据库密码和连接串。
+- SSH 私钥。
+- 服务器备份。
+- 日志。
+- 本地或服务器运行态数据库文件。
+- 大文件素材、视频、模型输出。
+
+## 4. 当前架构
+
+```text
+手机/浏览器
+  -> http://120.26.176.178:8000/
+  -> nginx 静态页面
+  -> /api/* 反向代理到 127.0.0.1:8001
+  -> wms-api.service / Python api.py
+  -> 阿里云 RDS PostgreSQL mobile_wms
 ```
 
-健康检查：
+设计边界：
 
-```bash
-curl -sS http://127.0.0.1:8001/api/health
-curl -sS http://127.0.0.1:8000/api/health
-```
+- 移动 H5 是岗位终端，不承担大文件加工。
+- 结构化业务数据进入 RDS。
+- 视频、剪辑工程、音乐库、AI 中间产物长期留在本地或专门文件存储。
+- 当前后端保持轻量 Python 标准库实现，适合早期验证和小团队使用。
 
-## 6. 用户与权限
+## 5. 用户与权限规则
 
-系统角色：
+当前已取消“系统角色”作为业务分配方式。账号权限按可用模块分配。
 
-- `admin`：管理员，可管理用户、商品、库存、流水作废
-- `keeper`：仓管员，可管理商品、入库、出库、盘点、流水作废
-- `viewer`：只读用户，只能查看商品和流水，不能修改库存
+用户字段：
 
-登录安全：
+- 账号
+- 姓名
+- 电话
+- 密码哈希
+- 可用模块
 
-- 密码已使用 `PBKDF2-SHA256` 哈希存储
-- 旧的明文密码列已保留用于兼容字段结构，但当前用户明文密码已清空
-- 新密码最低长度为 8 位
-- 登录 token 只在服务端保存哈希
-- token 有效期为 8 小时
-- 退出登录会立即注销当前 token
-- 同一账号和 IP 连续登录失败会触发限速，失败 5 次后锁定 10 分钟
-- 如果账号处于 `must_change_password=1` 状态，登录后必须先修改密码，否则后端会拒绝库存接口
+当前模块：
 
-注意：不要在页面、文档或聊天中公开真实管理员密码。
+- `warehouse`：仓储管理
+- `users`：用户与权限
 
-## 7. 当前 API
+账号菜单职责：
+
+- 右上角账号菜单只负责“自己”。
+- 当前保留退出登录、修改本人密码等个人动作。
+
+用户与权限模块职责：
+
+- 管理“别人”的账号。
+- 查看用户列表。
+- 新增用户。
+- 为账号分配可使用模块。
+
+密码规则：
+
+- 新增用户必须输入两次新密码，并由前端和后端同时校验一致。
+- 修改密码必须输入两次新密码，并由前端和后端同时校验一致。
+- 新密码最短 8 位。
+- 密码只保存 PBKDF2-SHA256 哈希。
+- 登录 token 只保存哈希。
+- 登录 token 有效期为 8 小时。
+- 连续登录失败会触发限速。
+
+兼容字段：
+
+- 数据库里仍保留旧 `role` 字段，原因是兼容旧表结构和历史 token 约束。
+- 当前业务权限判断不再使用 `role`，只看 `modules`。
+
+## 6. API 清单
 
 无需登录：
 
 - `GET /api/health`
 - `POST /api/login`
 
-需要登录：
+登录后通用：
 
 - `POST /api/logout`
 - `GET /api/me`
+- `POST /api/change-password`
+
+需要 `users` 模块：
+
+- `GET /api/users`
+- `POST /api/users`
+
+需要 `warehouse` 模块：
+
 - `GET /api/products`
 - `POST /api/products`
 - `PUT /api/products/<id>`
@@ -155,283 +187,146 @@ curl -sS http://127.0.0.1:8000/api/health
 - `GET /api/logs`
 - `POST /api/logs/<id>/void`
 - `GET /api/export/logs.csv`
-- `GET /api/users`
-- `POST /api/users`
-- `POST /api/change-password`
 
-## 8. 业务类型
+## 7. 服务管理
 
-入库类型：
+查看服务：
 
-- 到货入库
-- 退货入库
-- 领用入库
-
-出库类型：
-
-- 销售出库
-- 领用出库
-
-盘点类型：
-
-- 盘点
-
-作废冲销：
-
-- 作废原流水时，系统会生成一条 `作废冲销` 流水，并回滚对应库存变化
-- 冲销流水不可再次作废
-- 已作废流水不可重复作废
-
-## 9. 单号规则
-
-系统自动生成单号：
-
-- 入库：`INYYYYMMDD0001`
-- 出库：`OUTYYYYMMDD0001`
-- 盘点：`STYYYYMMDD0001`
-- 作废冲销：`RVYYYYMMDD0001`
-
-示例：
-
-```text
-IN202608140001
-OUT202608140001
-ST202608140001
-RV202608140001
+```bash
+ssh aliyun-ecom 'systemctl status wms-api --no-pager'
+ssh aliyun-ecom 'systemctl status nginx --no-pager'
 ```
 
-## 10. 数据库表
+重启后端：
 
-数据库文件：
+```bash
+ssh aliyun-ecom 'systemctl restart wms-api'
+```
 
-- `/opt/wms-h5/wms.db`
+查看后端日志：
+
+```bash
+ssh aliyun-ecom 'journalctl -u wms-api -n 100 --no-pager'
+```
+
+检查端口：
+
+```bash
+ssh aliyun-ecom "ss -ltnp | grep -E ':8000|:8001'"
+```
+
+健康检查：
+
+```bash
+ssh aliyun-ecom 'curl -fsS http://127.0.0.1:8000/api/health'
+curl -fsS http://120.26.176.178:8000/api/health
+```
+
+## 8. 部署流程
+
+部署前先检查本地语法：
+
+```bash
+python3 -m py_compile /Users/gryps/ecom/ops-workbench/mobile-wms/api.py
+node --check /Users/gryps/ecom/ops-workbench/mobile-wms/assets/app.js
+```
+
+部署前备份线上文件：
+
+```bash
+ssh aliyun-ecom 'ts=$(date +%Y%m%d%H%M%S); mkdir -p /opt/wms-h5/backups/deploy-$ts; cp /opt/wms-h5/api.py /opt/wms-h5/index.html /opt/wms-h5/backups/deploy-$ts/; cp -a /opt/wms-h5/assets /opt/wms-h5/backups/deploy-$ts/'
+```
+
+同步文件：
+
+```bash
+scp /Users/gryps/ecom/ops-workbench/mobile-wms/api.py aliyun-ecom:/opt/wms-h5/api.py
+scp /Users/gryps/ecom/ops-workbench/mobile-wms/index.html aliyun-ecom:/opt/wms-h5/index.html
+scp /Users/gryps/ecom/ops-workbench/mobile-wms/assets/app.js /Users/gryps/ecom/ops-workbench/mobile-wms/assets/styles.css aliyun-ecom:/opt/wms-h5/assets/
+```
+
+重启和验证：
+
+```bash
+ssh aliyun-ecom 'systemctl restart wms-api && systemctl is-active wms-api nginx'
+curl -fsS http://120.26.176.178:8000/api/health
+```
+
+## 9. 数据库结构重点
 
 主要表：
 
-### users
-
-用户表。关键字段：
-
-- `username`：账号
-- `password`：旧兼容字段，当前应为空
-- `password_hash`：密码哈希
-- `role`：角色，取值 `admin` / `keeper` / `viewer`
-- `must_change_password`：是否必须修改密码
-
-### products
-
-商品表。关键字段：
-
-- `sku`：SKU，唯一
-- `code`：条码
-- `name`：商品名称
-- `location`：库位
-- `stock`：当前库存
-- `min_stock`：安全库存
-- `unit`：单位
-- `active`：是否启用
-
-### inventory_logs
-
-库存流水表。关键字段：
-
-- `product_id`：商品 ID
-- `doc_no`：单号
-- `type`：流水类型，`in` / `out` / `stocktake` / `void`
-- `business`：业务类型
-- `qty`：操作数量
-- `before_stock`：操作前库存
-- `after_stock`：操作后库存
-- `operator`：操作人
-- `voided`：是否已作废
-- `reverse_of`：冲销来源流水 ID
-
-### auth_tokens
-
-登录 token 表。只保存 token 哈希，不保存原始 token。
-
-### login_attempts
-
-登录失败限速表，按账号和 IP 记录失败次数及锁定时间。
-
-## 11. 数据库检查命令
-
-服务器当前没有安装 `sqlite3` 命令行工具，可用 Python 检查：
-
-```bash
-python3 - <<'PY'
-import sqlite3
-con = sqlite3.connect('/opt/wms-h5/wms.db')
-con.row_factory = sqlite3.Row
-for row in con.execute('select username, role, length(password) as legacy_password_len, must_change_password from users'):
-    print(dict(row))
-PY
-```
-
-检查商品数量：
-
-```bash
-python3 - <<'PY'
-import sqlite3
-con = sqlite3.connect('/opt/wms-h5/wms.db')
-print(con.execute('select count(1) from products').fetchone()[0])
-PY
-```
-
-## 12. 备份与恢复
-
-建议每天备份 SQLite 数据库。
-
-手动备份：
-
-```bash
-mkdir -p /opt/wms-h5/backups
-cp /opt/wms-h5/wms.db /opt/wms-h5/backups/wms-$(date +%F-%H%M%S).db
-```
-
-恢复前建议先停止后端：
-
-```bash
-systemctl stop wms-api
-cp /opt/wms-h5/backups/某个备份文件.db /opt/wms-h5/wms.db
-systemctl start wms-api
-```
-
-恢复后检查：
-
-```bash
-systemctl is-active wms-api
-curl -sS http://127.0.0.1:8001/api/health
-```
-
-## 13. 前端移动端适配说明
-
-已处理的移动端问题：
-
-- iPhone Safari 输入框自动放大问题
-- 搜索输入时键盘消失问题
-- 商品数量较多时下拉选择过长问题
-
-当前商品选择方案：
-
-- 商品模块搜索框输入时只刷新列表，不重绘输入框
-- 入库、出库、盘点不再默认展示全部商品
-- 输入商品名、SKU、条码或库位后才显示匹配结果
-- 匹配结果最多展示 30 条
-- 选择商品后列表收起，只保留已选商品信息
-
-## 14. nginx 安全配置
-
-当前已配置基础安全头：
-
-- `X-Frame-Options: DENY`
-- `X-Content-Type-Options: nosniff`
-- `Referrer-Policy: same-origin`
-- `Permissions-Policy: camera=(self), microphone=(), geolocation=()`
-- `Content-Security-Policy`
-
-验证命令：
-
-```bash
-curl -I http://127.0.0.1:8000/api/health
-```
-
-## 15. 已知限制
-
-- 当前仍是 HTTP，不是 HTTPS。公网正式使用建议尽快启用 HTTPS。
-- 摄像头扫码需要 HTTPS 环境，HTTP 下多数手机浏览器无法授权摄像头。
-- 当前是单机 SQLite，适合小团队和轻量仓库使用。
-- 当前没有独立后台任务做自动备份，需要后续加 crontab 或 systemd timer。
-- 当前没有完整登录审计表，仅有失败限速记录和库存流水操作人。
-- 当前没有短信、邮箱或双因素认证。
-
-## 16. 建议后续开发优先级
-
-第一优先级：
-
-- 配置 HTTPS 证书
-- 增加自动数据库备份
-- 增加登录审计和操作审计
-- 增加入库/出库接口幂等，防止重复提交
-
-第二优先级：
-
-- 商品批量导入/导出
-- 库存预警导出
-- 按日期、商品、业务类型筛选流水
-- 用户禁用、重置密码
-- 更完善的角色权限配置
-
-第三优先级：
-
-- 摄像头扫码
-- PWA 桌面图标和离线缓存
-- 多仓库、多库区、多库位
-- 数据迁移到 PostgreSQL 或 MySQL
-
-## 17. 常见故障处理
-
-### 页面打不开
-
-检查 nginx：
-
-```bash
-systemctl status nginx
-nginx -t
-ss -ltnp | grep ':8000'
-```
-
-### 页面能打开但登录失败或接口失败
-
-检查后端：
-
-```bash
-systemctl status wms-api
-journalctl -u wms-api -n 100 --no-pager
-curl -sS http://127.0.0.1:8001/api/health
-```
-
-### 修改后端代码后不生效
-
-需要重启后端：
-
-```bash
-python3 -m py_compile /opt/wms-h5/api.py
-systemctl restart wms-api
-```
-
-### 修改 nginx 后不生效
-
-需要检查并 reload：
-
-```bash
-nginx -t
-systemctl reload nginx
-```
-
-### 登录提示失败次数过多
-
-说明账号和 IP 触发了登录限速。默认锁定 10 分钟。
-
-如确认为自己误操作，可用 Python 清除某个账号的失败记录：
-
-```bash
-python3 - <<'PY'
-import sqlite3
-username = '要解锁的账号'
-con = sqlite3.connect('/opt/wms-h5/wms.db')
-con.execute('delete from login_attempts where username=?', (username,))
-con.commit()
-PY
-```
-
-## 18. 交接重点
-
-接手人需要重点确认：
-
-- 是否已拿到服务器 SSH 权限
-- 是否知道当前管理员账号，但不要在文档中记录密码
-- 是否能访问 `http://121.41.166.116:8000/`
-- 是否能重启 `wms-api`
-- 是否能备份 `/opt/wms-h5/wms.db`
-- 是否准备启用 HTTPS
+- `users`
+- `products`
+- `inventory_logs`
+- `auth_tokens`
+- `login_attempts`
+
+`users` 关键字段：
+
+- `username`：账号。
+- `name`：姓名。
+- `phone`：电话。
+- `password_hash`：密码哈希。
+- `modules`：逗号分隔的模块授权。
+- `must_change_password`：是否必须修改密码。
+- `role`：历史兼容字段，当前业务权限不依赖它。
+
+## 10. 当前已完成的移动端优化
+
+- 登录前系统名称改为 `Gryps电商运营系统`。
+- 登录页取消业务下拉框。
+- 登录窗口固定，减少页面上下滑动。
+- 移动端横屏时显示旋转提示，不切换为横屏布局。
+- 登录后标题改为 `Gryps电商运营系统`。
+- 右上角用户与退出整合为账号菜单。
+- 入口页只展示当前账号可用模块。
+- 移除“当前身份、启用 SKU、预警 SKU、最近流水”等首页统计。
+- 用户与权限模块排在仓储管理上方。
+- 修复模块卡片过高、内容纵向不齐的问题。
+- 账号菜单里的用户管理只负责本人。
+- 用户列表和新增用户移入用户与权限模块。
+- 新增用户支持账号、姓名、电话、密码、模块分配。
+- 涉及新密码的表单都要求连续输入两次新密码。
+
+## 11. 已知限制
+
+- 当前仍是 HTTP，不建议直接启用摄像头扫码。
+- 当前没有编辑已有用户资料和重置别人密码的 UI。
+- 当前权限粒度是“模块级”，不是“按钮级”或“只读/可写级”。
+- 当前没有完整登录审计表。
+- 当前没有自动数据库备份任务文档化。
+- 当前前端 `assets/app.js` 仍较集中，后续继续增加模块时应继续拆分。
+
+## 12. 下一步建议
+
+优先级高：
+
+- 给 `mobile_wms` 配置自动备份或 RDS 备份策略检查清单。
+- 增加编辑用户、禁用用户、重置用户密码功能。
+- 权限从模块级扩展为能力级，例如 `warehouse_view`、`warehouse_edit`、`users_manage`。
+- 配置 HTTPS，解除扫码和 PWA 限制。
+
+优先级中：
+
+- 将 `assets/app.js` 继续拆成 `apiClient`、`portal`、`warehouse`、`users` 等文件。
+- 增加入库、出库、盘点接口幂等，防止重复提交。
+- 增加商品批量导入、库存预警导出、流水筛选。
+
+优先级低：
+
+- PWA 桌面图标和离线缓存。
+- 多仓库、多库区、多库位。
+- 更完整的操作审计和报表。
+
+## 13. 收尾检查清单
+
+接手或次日继续开发前确认：
+
+- `git status --short` 只剩已知无关改动。
+- `python3 -m py_compile api.py` 通过。
+- `node --check assets/app.js` 通过。
+- `wms-api` 和 `nginx` 为 active。
+- `http://120.26.176.178:8000/api/health` 返回成功。
+- Git 最新提交已推送到 GitHub。
+- 没有把密钥、密码、API key、数据库连接串提交进仓库。

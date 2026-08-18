@@ -16,6 +16,7 @@
 - `commerce-video-workbench/`：视频生产业务文档、工程索引和历史归档。
 - `commerce-image-workbench/`：图片生产业务文档、交接归档。
 - `docs/DEVELOPMENT_COLLABORATION.md`：后续开发协作规范，记录“模块、范围、目标、禁止、验收、执行”的任务沟通方式。
+- `docs/DEVELOPMENT_HANDOFF_2026-08-19.md`：2026-08-19 移动端电商运营系统开发收尾和次日交接。
 - `docs/SMALL_HOST_HANDOFF.md`：小主机部署、服务、ComfyUI 运行边界和下一阶段开发交接。
 - `docs/HARDWARE_ARCHITECTURE_HANDOFF.md`：云服务器、云数据库、本地工作站、小主机和大文件存储分层的硬件架构交接。
 
