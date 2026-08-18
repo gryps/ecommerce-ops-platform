@@ -1,6 +1,6 @@
 # 电商运营平台运行目录
 
-`ops-workbench` 是当前可运行代码目录，承载运营中心、采后中心、主播控场、投流计划、客服售后、仓库管理、财务管理、项目中心、视频生产、图片生产和模型配置。
+`ops-workbench` 是当前可运行代码目录，承载运营中心、采后中心、主播控场、投流计划、客服售后、仓库管理、移动仓库 H5、财务管理、项目中心、视频生产、图片生产和模型配置。
 
 当前版本：2.0.0
 
@@ -14,6 +14,7 @@
 - 投流计划：`../commerce-ad-planning-workbench/`
 - 客服售后：`../commerce-customer-service-workbench/`
 - 仓库管理：`../commerce-warehouse-workbench/`
+- 移动仓库 H5：`mobile-wms/`
 - 财务管理：`../commerce-finance-workbench/`
 - 项目中心：`../commerce-project-workbench/`
 - 运行代码模块上下文：`docs/modules/`
@@ -59,6 +60,7 @@ PVA_WORKBENCH_DATABASE_URL=sqlite:////mnt/e/codexwork/ecommerce-ops-platform/ops
 ├── ad-planning/       # 投流计划
 ├── customer-service/  # 客服售后
 ├── warehouse/         # 仓库管理
+│   └── mobile-wms/    # 移动仓库 H5 数据库、备份和临时文件
 ├── finance/           # 财务管理
 └── project/           # 项目中心
 ```

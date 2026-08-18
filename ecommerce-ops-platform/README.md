@@ -4,7 +4,7 @@
 
 当前目录用于归档并逐步整合电商运营平台的业务工作台：
 
-- `ops-workbench/`：实际运行项目，当前承载运营中心、采后中心、主播控场、投流计划、客服售后、仓库管理、财务管理、项目中心、视频生产、图片生产和模型配置，只保留运行说明。
+- `ops-workbench/`：实际运行项目，当前承载运营中心、采后中心、主播控场、投流计划、客服售后、仓库管理、移动仓库 H5、财务管理、项目中心、视频生产、图片生产和模型配置，只保留运行说明。
 - `commerce-operations-workbench/`：运营中心业务文档、自动化边界和需求归档。
 - `commerce-procurement-workbench/`：采后中心业务文档、供应商、采购、质检和知识产权凭证归档。
 - `commerce-host-control-workbench/`：主播控场业务文档、直播排品、话术和下播记录归档。
@@ -18,7 +18,7 @@
 - `docs/DEVELOPMENT_COLLABORATION.md`：后续开发协作规范，记录“模块、范围、目标、禁止、验收、执行”的任务沟通方式。
 - `docs/SMALL_HOST_HANDOFF.md`：小主机部署、服务、ComfyUI 运行边界和下一阶段开发交接。
 
-当前只有 `ops-workbench/` 是可运行代码目录；`commerce-*-workbench/` 是业务文档沉淀目录。
+当前只有 `ops-workbench/` 是可运行代码目录；`commerce-*-workbench/` 是业务文档沉淀目录。移动仓库 H5 作为仓库管理移动作业端，源码位于 `ops-workbench/mobile-wms/`，运行数据位于 `ops-workbench-runtime/warehouse/mobile-wms/`。
 
 ## 2.1 运营中心功能介绍
 
