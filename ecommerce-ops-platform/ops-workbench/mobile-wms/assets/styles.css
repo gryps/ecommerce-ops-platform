@@ -13,6 +13,7 @@ h1{font-size:25px}
 form{display:grid;gap:12px}
 label{display:grid;gap:6px;font-size:13px;color:#65737c}
 input,select,textarea{width:100%;min-height:44px;border:1px solid #dde4e8;border-radius:8px;padding:10px 12px;font:inherit;font-size:16px;line-height:1.25;-webkit-appearance:none;appearance:none}
+input[type=checkbox]{width:18px;min-height:18px;height:18px;padding:0;appearance:auto;-webkit-appearance:checkbox}
 textarea{min-height:76px}
 .btn{min-height:40px;border:0;border-radius:8px;padding:0 13px;background:#e8eef2;color:#172126;font-weight:650}
 .primary{background:#0f766e;color:white}
@@ -67,6 +68,8 @@ textarea{min-height:76px}
 .pickItem.on{border-color:#0f766e;background:#e7f5f3}
 .picked{border:1px solid #99f6e4;background:#f0fdfa;border-radius:8px;padding:10px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.checkGroup{display:grid;gap:8px}
+.checkGroup label{display:flex;align-items:center;gap:8px;color:#172126}
 .nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(680px,100%);display:grid;grid-template-columns:repeat(5,1fr);background:white;border-top:1px solid #dde4e8;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
 .nav button{height:54px;border:0;background:transparent;border-radius:8px;color:#65737c;display:grid;place-items:center;font-size:11px;min-width:0}
 .nav button.on{background:#e7f5f3;color:#0f766e}
@@ -87,4 +90,3 @@ textarea{min-height:76px}
 @media(max-width:390px){.stats,.grid2{grid-template-columns:1fr}
 .quick{grid-template-columns:repeat(2,1fr)}
 }
-

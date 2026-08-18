@@ -35,6 +35,10 @@ BUSINESS = {
     'out': ['销售出库', '领用出库'],
     'stocktake': ['盘点']
 }
+MODULES = {
+    'warehouse': '仓储管理',
+    'users': '用户与权限',
+}
 
 SEED_PRODUCTS = [
     ('SKU-10001', '69000010001', '标准纸箱 40x30x20', 'A-01-01', 126, 30, '个'),
@@ -119,6 +123,16 @@ def verify_password(stored, password):
 
 def token_hash(token):
     return hashlib.sha256(token.encode('utf-8')).hexdigest()
+
+def module_list(value):
+    if isinstance(value, list):
+        items = value
+    else:
+        items = str(value or '').split(',')
+    return [x for x in dict.fromkeys(str(x).strip() for x in items) if x in MODULES]
+
+def module_csv(value):
+    return ','.join(module_list(value))
 
 def initial_admin_password():
     password = os.environ.get(INITIAL_ADMIN_PASSWORD_ENV, '')
@@ -240,12 +254,19 @@ def init_db():
         );
         ''')
         user_cols = table_columns(con, 'users')
+        had_modules = 'modules' in user_cols
         if 'password_hash' not in user_cols:
             con.execute('alter table users add column password_hash text')
         if 'must_change_password' not in user_cols:
             con.execute('alter table users add column must_change_password integer not null default 0')
+        if 'name' not in user_cols:
+            con.execute('alter table users add column name text not null default \'\'')
+        if 'phone' not in user_cols:
+            con.execute('alter table users add column phone text not null default \'\'')
+        if 'modules' not in user_cols:
+            con.execute('alter table users add column modules text not null default \'warehouse\'')
         if first_value(con.execute('select count(*) from users').fetchone()) == 0:
-            con.execute('insert into users(username,password,password_hash,role,must_change_password) values(?,?,?,?,?)', ('admin', '', hash_password(initial_admin_password()), 'admin', 1))
+            con.execute('insert into users(username,password,password_hash,role,must_change_password,name,phone,modules) values(?,?,?,?,?,?,?,?)', ('admin', '', hash_password(initial_admin_password()), 'admin', 1, '管理员', '', 'warehouse,users'))
         product_cols = table_columns(con, 'products')
         if 'active' not in product_cols:
             con.execute('alter table products add column active integer not null default 1')
@@ -262,13 +283,15 @@ def init_db():
             con.execute('alter table inventory_logs add column voided_at text')
         if 'reverse_of' not in log_cols:
             con.execute('alter table inventory_logs add column reverse_of integer')
-        for u in con.execute('select id,username,password,password_hash,must_change_password from users').fetchall():
+        for u in con.execute('select id,username,password,password_hash,role,must_change_password,modules from users').fetchall():
             legacy = u['password'] or ''
             pwd_hash = u['password_hash'] or ''
             must_change = int(u['must_change_password'] or 0)
+            legacy_modules = 'warehouse,users' if (u['role'] or '') == 'admin' else 'warehouse'
+            modules = module_csv((u['modules'] if had_modules else '') or legacy_modules)
             if not pwd_hash:
                 pwd_hash = hash_password(legacy)
-            con.execute('update users set password=?,password_hash=?,must_change_password=? where id=?', ('', pwd_hash, must_change, u['id']))
+            con.execute('update users set password=?,password_hash=?,must_change_password=?,modules=? where id=?', ('', pwd_hash, must_change, modules, u['id']))
         if first_value(con.execute('select count(*) from products').fetchone()) == 0:
             con.executemany('insert into products(sku,code,name,location,stock,min_stock,unit) values(?,?,?,?,?,?,?)', SEED_PRODUCTS)
         con.execute('delete from auth_tokens where expires_at<? or revoked_at is not null', (now_ts(),))
@@ -331,11 +354,11 @@ class Handler(BaseHTTPRequestHandler):
         th = token_hash(token)
         with db() as con:
             con.execute('delete from auth_tokens where expires_at<? or revoked_at is not null', (now_ts(),))
-            row = con.execute('''select t.username,t.role,t.expires_at,u.must_change_password from auth_tokens t join users u on u.username=t.username where t.token_hash=? and t.expires_at>=? and t.revoked_at is null''', (th, now_ts())).fetchone()
+            row = con.execute('''select t.username,t.expires_at,u.name,u.phone,u.modules,u.must_change_password from auth_tokens t join users u on u.username=t.username where t.token_hash=? and t.expires_at>=? and t.revoked_at is null''', (th, now_ts())).fetchone()
             if not row:
                 return None
             con.execute('update auth_tokens set last_seen_at=current_timestamp where token_hash=?', (th,))
-            return {'username': row['username'], 'role': row['role'], 'must_change_password': int(row['must_change_password'] or 0), 'token_hash': th}
+            return {'username': row['username'], 'name': row['name'] or '', 'phone': row['phone'] or '', 'modules': module_list(row['modules']), 'must_change_password': int(row['must_change_password'] or 0), 'token_hash': th}
 
     def require_user(self, allow_password_change=False):
         u = self.user()
@@ -348,7 +371,16 @@ class Handler(BaseHTTPRequestHandler):
         return u
 
     def current_user_payload(self, u):
-        return {'username': u['username'], 'role': u['role'], 'must_change_password': int(u.get('must_change_password') or 0), 'token_expires_in': TOKEN_TTL}
+        return {'username': u['username'], 'name': u.get('name') or '', 'phone': u.get('phone') or '', 'modules': module_list(u.get('modules')), 'must_change_password': int(u.get('must_change_password') or 0), 'token_expires_in': TOKEN_TTL}
+
+    def has_module(self, u, module):
+        return module in module_list(u.get('modules'))
+
+    def require_module(self, u, module, message):
+        if not self.has_module(u, module):
+            self.error_json(403, message)
+            return False
+        return True
 
     def do_GET(self):
         path = urlparse(self.path).path
@@ -360,18 +392,26 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/api/me':
             return self.send_json(200, {'ok': True, 'user': self.current_user_payload(u)})
         if path == '/api/users':
-            if u['role'] != 'admin':
-                return self.error_json(403, '只有管理员可以查看用户')
-            data = rows('select id,username,role,created_at,must_change_password from users order by id')
+            if not self.require_module(u, 'users', '当前账号不能使用用户与权限模块'):
+                return
+            data = rows('select id,username,name,phone,modules,created_at,must_change_password from users order by id')
+            for item in data:
+                item['modules'] = module_list(item.get('modules'))
             return self.send_json(200, {'ok': True, 'users': data})
         if path == '/api/products':
+            if not self.require_module(u, 'warehouse', '当前账号不能使用仓储管理模块'):
+                return
             data = rows('select * from products order by active desc, id desc')
             return self.send_json(200, {'ok': True, 'products': [product_dict(r) for r in data]})
         if path == '/api/logs':
+            if not self.require_module(u, 'warehouse', '当前账号不能使用仓储管理模块'):
+                return
             data = rows('''select l.*, p.sku, p.name from inventory_logs l left join products p on p.id=l.product_id order by l.id desc limit 200''')
             logs = [{'id': r['id'], 'doc_no': r['doc_no'] or '', 't': r['business'], 'kind': r['type'], 'sku': r['sku'] or '', 'name': r['name'] or '', 'n': r['qty'], 'before': r['before_stock'], 'stock': r['after_stock'], 'remark': r['remark'] or '', 'time': r['created_at'], 'operator': r['operator'], 'voided': int(r['voided'] or 0), 'void_reason': r['void_reason'] or '', 'voided_by': r['voided_by'] or '', 'voided_at': r['voided_at'] or '', 'reverse_of': r['reverse_of']} for r in data]
             return self.send_json(200, {'ok': True, 'logs': logs})
         if path == '/api/export/logs.csv':
+            if not self.require_module(u, 'warehouse', '当前账号不能使用仓储管理模块'):
+                return
             return self.export_logs()
         return self.error_json(404, '接口不存在')
 
@@ -410,20 +450,20 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/api/change-password':
             return self.change_password(data, u)
         if path == '/api/products':
-            if u['role'] == 'viewer':
-                return self.error_json(403, '只读用户不能修改商品')
+            if not self.require_module(u, 'warehouse', '当前账号不能使用仓储管理模块'):
+                return
             return self.save_product(data)
         if path == '/api/movements':
-            if u['role'] == 'viewer':
-                return self.error_json(403, '只读用户不能操作库存')
+            if not self.require_module(u, 'warehouse', '当前账号不能使用仓储管理模块'):
+                return
             return self.movement(data, u['username'])
         if path.startswith('/api/products/') and path.endswith('/active'):
-            if u['role'] == 'viewer':
-                return self.error_json(403, '只读用户不能修改商品')
+            if not self.require_module(u, 'warehouse', '当前账号不能使用仓储管理模块'):
+                return
             return self.set_product_active(path, data)
         if path.startswith('/api/logs/') and path.endswith('/void'):
-            if u['role'] == 'viewer':
-                return self.error_json(403, '只读用户不能作废流水')
+            if not self.require_module(u, 'warehouse', '当前账号不能使用仓储管理模块'):
+                return
             return self.void_log(path, data, u['username'])
         return self.error_json(404, '接口不存在')
 
@@ -433,8 +473,8 @@ class Handler(BaseHTTPRequestHandler):
         if not u:
             return
         if path.startswith('/api/products/'):
-            if u['role'] == 'viewer':
-                return self.error_json(403, '只读用户不能修改商品')
+            if not self.require_module(u, 'warehouse', '当前账号不能使用仓储管理模块'):
+                return
             try:
                 data = parse_body(self)
             except Exception:
@@ -455,7 +495,7 @@ class Handler(BaseHTTPRequestHandler):
             if attempt and int(attempt['locked_until'] or 0) > now:
                 wait = max(1, int((int(attempt['locked_until']) - now + 59) / 60))
                 return self.error_json(429, f'登录失败次数过多，请 {wait} 分钟后再试')
-            user = con.execute('select id,username,password,password_hash,role,must_change_password from users where username=?', (username,)).fetchone()
+            user = con.execute('select id,username,password,password_hash,name,phone,modules,must_change_password from users where username=?', (username,)).fetchone()
             ok = bool(user and verify_password(user['password_hash'] or user['password'], password))
             if not ok:
                 fail_count = int(attempt['fail_count']) + 1 if attempt else 1
@@ -467,8 +507,8 @@ class Handler(BaseHTTPRequestHandler):
                 con.execute('update users set password=?,password_hash=? where id=?', ('', hash_password(password), user['id']))
             token = secrets.token_urlsafe(32)
             expires_at = now + TOKEN_TTL
-            con.execute('insert into auth_tokens(token_hash,username,role,expires_at) values(?,?,?,?)', (token_hash(token), username, user['role'], expires_at))
-            payload = {'username': username, 'role': user['role'], 'must_change_password': int(user['must_change_password'] or 0), 'token_expires_in': TOKEN_TTL}
+            con.execute('insert into auth_tokens(token_hash,username,role,expires_at) values(?,?,?,?)', (token_hash(token), username, '', expires_at))
+            payload = {'username': username, 'name': user['name'] or '', 'phone': user['phone'] or '', 'modules': module_list(user['modules']), 'must_change_password': int(user['must_change_password'] or 0), 'token_expires_in': TOKEN_TTL}
             return self.send_json(200, {'ok': True, 'token': token, 'user': payload})
 
     def logout(self):
@@ -480,33 +520,46 @@ class Handler(BaseHTTPRequestHandler):
         return self.send_json(200, {'ok': True})
 
     def create_user(self, data, current_user):
-        if current_user['role'] != 'admin':
-            return self.error_json(403, '只有管理员可以新增用户')
+        if not self.has_module(current_user, 'users'):
+            return self.error_json(403, '当前账号不能使用用户与权限模块')
         username = str(data.get('username') or '').strip()
-        password = str(data.get('password') or '').strip()
-        role = str(data.get('role') or 'keeper').strip()
-        if role not in ('admin', 'keeper', 'viewer'):
-            return self.error_json(400, '角色无效')
+        name = str(data.get('name') or '').strip()
+        phone = str(data.get('phone') or '').strip()
+        password = str(data.get('password') or '')
+        password_confirm = str(data.get('password_confirm') or '')
+        modules = module_csv(data.get('modules'))
         if not username or len(username) < 3:
             return self.error_json(400, '账号至少 3 个字符')
+        if not name:
+            return self.error_json(400, '姓名必填')
+        if not phone:
+            return self.error_json(400, '电话必填')
         if not password or len(password) < 8:
             return self.error_json(400, '密码至少 8 个字符')
+        if password != password_confirm:
+            return self.error_json(400, '两次输入的新密码不一致')
+        if not modules:
+            return self.error_json(400, '至少选择一个可用模块')
         try:
             with db() as con:
-                con.execute('insert into users(username,password,password_hash,role,must_change_password) values(?,?,?,?,0)', (username, '', hash_password(password), role))
+                con.execute('insert into users(username,password,password_hash,role,must_change_password,name,phone,modules) values(?,?,?,?,?,?,?,?)', (username, '', hash_password(password), '', 0, name, phone, modules))
                 uid = con.execute('select id from users where username=?', (username,)).fetchone()['id']
         except Exception as exc:
             if not db_integrity_error(exc):
                 raise
             return self.error_json(409, '账号已存在')
-        user = one('select id,username,role,created_at,must_change_password from users where id=?', (uid,))
+        user = one('select id,username,name,phone,modules,created_at,must_change_password from users where id=?', (uid,))
+        user['modules'] = module_list(user.get('modules'))
         return self.send_json(200, {'ok': True, 'user': user})
 
     def change_password(self, data, current_user):
         old_password = str(data.get('old_password') or '')
         new_password = str(data.get('new_password') or '')
+        new_password_confirm = str(data.get('new_password_confirm') or '')
         if len(new_password) < 8:
             return self.error_json(400, '新密码至少 8 个字符')
+        if new_password != new_password_confirm:
+            return self.error_json(400, '两次输入的新密码不一致')
         if old_password == new_password:
             return self.error_json(400, '新密码不能和原密码相同')
         with db() as con:
