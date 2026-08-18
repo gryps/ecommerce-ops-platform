@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 
 from pydantic import ConfigDict
 from pydantic import model_validator
@@ -23,11 +23,13 @@ class Settings(BaseSettings):
     runtime_dir: Path = DEFAULT_RUNTIME_DIR
     workspace_dir: Path | None = None
     static_dir: Path | None = None
+    operations_runtime_dir: Path | None = None
     ffmpeg_binary: str = "ffmpeg"
     ffprobe_binary: str = "ffprobe"
     mount_roots: list[Path] | None = None
     auth_session_hours: int = 24
     media_probe_timeout_seconds: int = 60
+    comfyui_base_url: str = "http://127.0.0.1:8188"
 
     @model_validator(mode="after")
     def normalize_runtime_paths(self) -> "Settings":
@@ -40,12 +42,17 @@ class Settings(BaseSettings):
             self.static_dir = self.runtime_dir / "static-workbench"
         else:
             self.static_dir = _resolve_local_path(self.static_dir)
+        if self.operations_runtime_dir is None:
+            self.operations_runtime_dir = self.runtime_dir / "operations"
+        else:
+            self.operations_runtime_dir = _resolve_local_path(self.operations_runtime_dir)
         if self.mount_roots is None:
             self.mount_roots = [
                 Path("/mnt"),
                 Path("/media"),
                 Path("/run/media"),
                 self.runtime_dir,
+                self.operations_runtime_dir,
             ]
         else:
             self.mount_roots = [_resolve_local_path(path) for path in self.mount_roots]
@@ -59,3 +66,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+

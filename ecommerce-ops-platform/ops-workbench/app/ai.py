@@ -16,13 +16,45 @@ from app.services.model_call_logs import record_business_model_call
 
 PROFILE_STORAGE_KEY = "model_profiles"
 DEFAULT_COMPATIBLE_BASE_URL = ""
-PROFILE_STAGES = (
-    ("copywriting", "文案生成"),
-    ("image_analysis", "原图分析与提示词"),
-    ("image_generation", "AI 商品生图"),
-    ("speech_recognition", "音频转文案"),
-    ("speech_synthesis", "字幕配音"),
-)
+PROFILE_STAGE_META: dict[str, dict[str, Any]] = {
+    "copywriting": {
+        "label": "文案生成",
+        "provider_type": "openai_compatible",
+        "protocol": "chat_completions",
+        "capabilities": ["text_in", "json_out", "copywriting"],
+    },
+    "image_analysis": {
+        "label": "原图分析与提示词",
+        "provider_type": "openai_compatible",
+        "protocol": "vision_chat_completions",
+        "capabilities": ["image_in", "text_in", "json_out", "prompt_draft"],
+    },
+    "image_generation": {
+        "label": "AI 商品生图",
+        "provider_type": "image_generation_api",
+        "protocol": "image_generation",
+        "capabilities": ["image_in", "text_in", "image_out", "reference_image"],
+    },
+    "ai_video_generation": {
+        "label": "AI 视频生成",
+        "provider_type": "vendor_video_api",
+        "protocol": "video_generation",
+        "capabilities": ["text_to_video", "image_to_video", "first_last_frame", "remote_output"],
+    },
+    "speech_recognition": {
+        "label": "音频转文案",
+        "provider_type": "openai_compatible",
+        "protocol": "chat_completions_audio_input",
+        "capabilities": ["audio_in", "text_out", "non_realtime_asr"],
+    },
+    "speech_synthesis": {
+        "label": "字幕配音",
+        "provider_type": "bailian_workspace_tts",
+        "protocol": "workspace_tts",
+        "capabilities": ["text_in", "audio_out", "voice_catalog"],
+    },
+}
+PROFILE_STAGES = tuple((stage, meta["label"]) for stage, meta in PROFILE_STAGE_META.items())
 QWEN3_ASR_HTTP_MODEL_PATTERN = re.compile(
     r"qwen3-asr-flash(?:-\d{4}-\d{2}-\d{2})?",
     re.IGNORECASE,
@@ -44,10 +76,13 @@ def default_profiles() -> list[ModelProfile]:
     return [
         ModelProfile(
             stage=stage,
-            label=label,
+            label=str(meta["label"]),
+            provider_type=str(meta["provider_type"]),
+            protocol=str(meta["protocol"]),
+            capabilities=list(meta["capabilities"]),
             base_url=DEFAULT_COMPATIBLE_BASE_URL,
         )
-        for stage, label in PROFILE_STAGES
+        for stage, meta in PROFILE_STAGE_META.items()
     ]
 
 
@@ -73,10 +108,14 @@ def load_model_profiles(include_api_key: bool = False) -> list[ModelProfile]:
     for default in default_profiles():
         current = stored.get(default.stage, {})
         api_key = str(current.get("api_key") or "")
+        meta = PROFILE_STAGE_META[default.stage]
         profiles.append(
             ModelProfile(
                 stage=default.stage,
                 label=default.label,
+                provider_type=str(current.get("provider_type") or meta["provider_type"]),
+                protocol=str(current.get("protocol") or meta["protocol"]),
+                capabilities=list(current.get("capabilities") or meta["capabilities"]),
                 base_url=str(current.get("base_url") or default.base_url),
                 model=str(current.get("model") or ""),
                 temperature=float(current.get("temperature", default.temperature)),
@@ -102,6 +141,9 @@ def save_model_profiles(profiles: list[ModelProfile]) -> None:
         payload.append(
             {
                 "stage": stage,
+                "provider_type": profile.provider_type.strip() or str(PROFILE_STAGE_META[stage]["provider_type"]),
+                "protocol": profile.protocol.strip() or str(PROFILE_STAGE_META[stage]["protocol"]),
+                "capabilities": list(profile.capabilities or PROFILE_STAGE_META[stage]["capabilities"]),
                 "base_url": profile.base_url.strip(),
                 "model": profile.model.strip(),
                 "temperature": profile.temperature,

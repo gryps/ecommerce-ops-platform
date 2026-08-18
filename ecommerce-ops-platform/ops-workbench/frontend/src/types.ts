@@ -1,6 +1,7 @@
-export type View = "flow" | "materials" | "copy" | "music" | "production";
+﻿export type View = "flow" | "materials" | "copy" | "music" | "production";
 export type ImageView = "overview" | "batches" | "products" | "plans" | "review" | "delivery";
-export type PlatformModule = "video" | "images" | "models";
+export type OperationView = "overview" | "topology" | "products" | "live" | "ads" | "finance" | "reports";
+export type PlatformModule = "operations" | "procurement" | "hostControl" | "adPlanning" | "customerService" | "warehouse" | "finance" | "project" | "video" | "aiVideo" | "images" | "models";
 
 export type User = {
   id: string;
@@ -13,6 +14,9 @@ export type User = {
 export type ModelProfile = {
   stage: string;
   label: string;
+  provider_type: string;
+  protocol: string;
+  capabilities: string[];
   base_url: string;
   model: string;
   temperature: number;
@@ -233,3 +237,36 @@ export type TrackedOperationStatus = {
   status: "unknown" | "processing" | "completed" | "failed";
   detail: string;
 };
+
+export type OpsProduct = {
+  id: string;
+  product_code: string;
+  name: string;
+  category: string;
+  style_tags: string[];
+  supplier_name: string;
+  supplier_link: string;
+  purchase_cost_yuan: number;
+  target_sale_price_yuan: number;
+  actual_sale_price_yuan: number;
+  stock_qty: number;
+  inbound_qty: number;
+  procurement_cycle_days: number;
+  status: string;
+  selection_grade: string;
+  owner: string;
+  notes: string;
+  estimated_gross_profit_yuan: number;
+  estimated_gross_margin: number;
+  stock_warning: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OpsOverview = {
+  metrics: Array<{ key: string; label: string; value: string | number; unit: string }>;
+  risks: Array<{ product_id: string; product_code: string; name: string; risk: string; detail: string }>;
+  product_status_counts: Record<string, number>;
+  next_actions: string[];
+};
+

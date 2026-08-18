@@ -1,13 +1,14 @@
 [Unit]
-Description=Product Video Automation FastAPI service
+Description=Ecommerce Ops Platform FastAPI service
+After=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/mnt/e/codexwork/ecommerce-ops-platform/ops-workbench
+WorkingDirectory=@OPS_WORKBENCH_DIR@
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONDONTWRITEBYTECODE=1
-EnvironmentFile=-/mnt/e/codexwork/ecommerce-ops-platform/ops-workbench-runtime/.env
-ExecStart=/mnt/e/codexwork/.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+EnvironmentFile=-@RUNTIME_DIR@/.env
+ExecStart=@VENV_DIR@/bin/python -m uvicorn app.main:app --host @HOST@ --port @PORT@
 Restart=always
 RestartSec=5
 TimeoutStopSec=30

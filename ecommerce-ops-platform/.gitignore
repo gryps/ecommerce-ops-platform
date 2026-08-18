@@ -1,0 +1,47 @@
+# Runtime and secrets
+.env
+*.env
+ops-workbench-runtime/
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / frontend
+node_modules/
+frontend/node_modules/
+ops-workbench/frontend/node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# Logs and databases
+*.log
+*.pid
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Release artifacts
+*.zip
+*.tar.gz
+releases/
+backups/
+
+# Local test artifacts
+ops-workbench/UBUNTU_TEST_SECRET.txt

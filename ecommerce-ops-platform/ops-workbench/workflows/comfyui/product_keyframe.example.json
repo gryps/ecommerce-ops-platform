@@ -1,0 +1,9 @@
+{
+  "description": "ComfyUI API workflow placeholder. Export a real API-format workflow from ComfyUI and replace this file.",
+  "inputs": {
+    "positive_prompt": "{{positive_prompt}}",
+    "negative_prompt": "{{negative_prompt}}",
+    "image_path": "{{image_path}}",
+    "seed": "{{seed}}"
+  }
+}

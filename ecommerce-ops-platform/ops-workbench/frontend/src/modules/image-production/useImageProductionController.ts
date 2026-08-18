@@ -1,12 +1,8 @@
-import { useState } from "react";
-import type {
-  DeleteConfirmation,
-  ImagePrompt,
-} from "../../types";
 import { useImageProductionData } from "./useImageProductionData";
 import { useImageProductEditor } from "./useImageProductEditor";
 import { useImageSourceAssets } from "./useImageSourceAssets";
 import { useImageTaskActions } from "./useImageTaskActions";
+import { useImageProductionUiState } from "./useImageProductionUiState";
 import { usePlatformBrowserSession } from "./usePlatformBrowserSession";
 import { usePlatformTemplateEditor } from "./usePlatformTemplateEditor";
 
@@ -17,41 +13,28 @@ export function useImageProductionController({
   onError: (value: string) => void;
   onNotice: (value: string) => void;
 }) {
-  const [platformTemplateId, setPlatformTemplateId] = useState("");
-  const [selectedId, setSelectedId] = useState("");
-  const [templateId, setTemplateId] = useState("");
-  const [model, setModel] = useState("");
-  const [outputPlan, setOutputPlan] = useState<Record<string, number>>({ "白底图": 2, "环境搭配图": 2, "佩戴图": 2, "商详图": 4 });
-  const [prompt, setPrompt] = useState<ImagePrompt | null>(null);
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const [confirmation, setConfirmation] = useState<DeleteConfirmation | null>(null);
-  const [batchPlatformFieldKey, setBatchPlatformFieldKey] = useState("");
-  const [batchPlatformFieldValue, setBatchPlatformFieldValue] = useState("");
-  const [reviewIssues, setReviewIssues] = useState<Record<string, string>>({});
-  const [reviewComments, setReviewComments] = useState<Record<string, string>>({});
-  const [outputImageTypes, setOutputImageTypes] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
+  const ui = useImageProductionUiState();
   const { platformUrl, browserSession, setPlatformUrl, startBrowserAutomation, stopBrowserAutomation } = usePlatformBrowserSession({ onError, onNotice });
   const { products, templates, tasks, sourceAssets, platformTemplates, platformProfiles, load } = useImageProductionData({
-    selectedId,
-    templateId,
-    platformTemplateId,
-    setSelectedId,
-    setTemplateId,
-    setPlatformTemplateId,
-    setBusy,
+    selectedId: ui.selectedId,
+    templateId: ui.templateId,
+    platformTemplateId: ui.platformTemplateId,
+    setSelectedId: ui.setSelectedId,
+    setTemplateId: ui.setTemplateId,
+    setPlatformTemplateId: ui.setPlatformTemplateId,
+    setBusy: ui.setBusy,
     onError,
   });
 
-  const selected = selectedId ? products.find(item => item.id === selectedId) ?? null : null;
-  const currentTemplate = templates.find(item => item.id === templateId) ?? templates[0] ?? null;
-  const currentPlatformTemplate = platformTemplates.find(item => item.id === platformTemplateId) ?? null;
-  const currentPlatformProfile = platformProfiles.find(item => item.product_id === selected?.id && item.template_id === platformTemplateId) ?? null;
+  const selected = ui.selectedId ? products.find(item => item.id === ui.selectedId) ?? null : null;
+  const currentTemplate = templates.find(item => item.id === ui.templateId) ?? templates[0] ?? null;
+  const currentPlatformTemplate = platformTemplates.find(item => item.id === ui.platformTemplateId) ?? null;
+  const currentPlatformProfile = platformProfiles.find(item => item.product_id === selected?.id && item.template_id === ui.platformTemplateId) ?? null;
   const readyProducts = products.filter(item => item.reference_count > 0);
   const completion = selected && selected.reference_total > 0 ? Math.round((selected.reference_count / selected.reference_total) * 100) : 0;
 
   async function run(work: () => Promise<unknown>, success: string) {
-    setBusy(true);
+    ui.setBusy(true);
     onError("");
     onNotice("");
     try {
@@ -63,7 +46,7 @@ export function useImageProductionController({
       onError(reason instanceof Error ? reason.message : "操作失败");
       return false;
     } finally {
-      setBusy(false);
+      ui.setBusy(false);
     }
   }
 
@@ -77,10 +60,10 @@ export function useImageProductionController({
     deleteImageProducts,
   } = useImageProductEditor({
     selected,
-    selectedId,
-    setSelectedId,
-    setSelectedProductIds,
-    setPrompt,
+    selectedId: ui.selectedId,
+    setSelectedId: ui.setSelectedId,
+    setSelectedProductIds: ui.setSelectedProductIds,
+    setPrompt: ui.setPrompt,
     run,
   });
 
@@ -109,13 +92,13 @@ export function useImageProductionController({
     selected,
     currentPlatformTemplate,
     currentPlatformProfile,
-    platformTemplateId,
-    selectedProductIds,
-    batchPlatformFieldKey,
-    batchPlatformFieldValue,
+    platformTemplateId: ui.platformTemplateId,
+    selectedProductIds: ui.selectedProductIds,
+    batchPlatformFieldKey: ui.batchPlatformFieldKey,
+    batchPlatformFieldValue: ui.batchPlatformFieldValue,
     run,
     onError,
-    setPlatformTemplateId,
+    setPlatformTemplateId: ui.setPlatformTemplateId,
   });
 
   const {
@@ -134,7 +117,7 @@ export function useImageProductionController({
     load,
     onError,
     onNotice,
-    setSelectedId,
+    setSelectedId: ui.setSelectedId,
   });
 
   const {
@@ -147,12 +130,12 @@ export function useImageProductionController({
   } = useImageTaskActions({
     selected,
     currentTemplate,
-    model,
-    outputPlan,
-    reviewIssues,
-    reviewComments,
-    outputImageTypes,
-    setPrompt,
+    model: ui.model,
+    outputPlan: ui.outputPlan,
+    reviewIssues: ui.reviewIssues,
+    reviewComments: ui.reviewComments,
+    outputImageTypes: ui.outputImageTypes,
+    setPrompt: ui.setPrompt,
     run,
   });
 
@@ -161,7 +144,7 @@ export function useImageProductionController({
     templates,
     tasks,
     platformTemplates,
-    platformTemplateId,
+    platformTemplateId: ui.platformTemplateId,
     platformTemplateName,
     platformTemplatePlatform,
     platformTemplateEntryUrl,
@@ -169,26 +152,26 @@ export function useImageProductionController({
     platformImageSlots,
     platformProfileValues,
     platformImageSelections,
-    selectedId,
-    templateId,
-    model,
-    outputPlan,
-    prompt,
+    selectedId: ui.selectedId,
+    templateId: ui.templateId,
+    model: ui.model,
+    outputPlan: ui.outputPlan,
+    prompt: ui.prompt,
     form,
     sourceAssets,
     selectedSourceAssetIds,
     uploadingSourceAssets,
     selectedProductName,
-    selectedProductIds,
-    confirmation,
-    batchPlatformFieldKey,
-    batchPlatformFieldValue,
-    reviewIssues,
-    reviewComments,
-    outputImageTypes,
+    selectedProductIds: ui.selectedProductIds,
+    confirmation: ui.confirmation,
+    batchPlatformFieldKey: ui.batchPlatformFieldKey,
+    batchPlatformFieldValue: ui.batchPlatformFieldValue,
+    reviewIssues: ui.reviewIssues,
+    reviewComments: ui.reviewComments,
+    outputImageTypes: ui.outputImageTypes,
     platformUrl,
     browserSession,
-    busy,
+    busy: ui.busy,
     imageProductEditorRef,
     imageProductNameRef,
     selected,
@@ -198,7 +181,7 @@ export function useImageProductionController({
     sourceAssetPreviewUrls,
     readyProducts,
     completion,
-    setPlatformTemplateId,
+    setPlatformTemplateId: ui.setPlatformTemplateId,
     setPlatformTemplateName,
     setPlatformTemplatePlatform,
     setPlatformTemplateEntryUrl,
@@ -206,21 +189,21 @@ export function useImageProductionController({
     setPlatformImageSlots,
     setPlatformProfileValues,
     setPlatformImageSelections,
-    setSelectedId,
-    setTemplateId,
-    setModel,
-    setOutputPlan,
-    setPrompt,
+    setSelectedId: ui.setSelectedId,
+    setTemplateId: ui.setTemplateId,
+    setModel: ui.setModel,
+    setOutputPlan: ui.setOutputPlan,
+    setPrompt: ui.setPrompt,
     setForm,
     setSelectedSourceAssetIds,
     setSelectedProductName,
-    setSelectedProductIds,
-    setConfirmation,
-    setBatchPlatformFieldKey,
-    setBatchPlatformFieldValue,
-    setReviewIssues,
-    setReviewComments,
-    setOutputImageTypes,
+    setSelectedProductIds: ui.setSelectedProductIds,
+    setConfirmation: ui.setConfirmation,
+    setBatchPlatformFieldKey: ui.setBatchPlatformFieldKey,
+    setBatchPlatformFieldValue: ui.setBatchPlatformFieldValue,
+    setReviewIssues: ui.setReviewIssues,
+    setReviewComments: ui.setReviewComments,
+    setOutputImageTypes: ui.setOutputImageTypes,
     setPlatformUrl,
     saveProduct,
     editImageProduct,

@@ -32,10 +32,16 @@ export function ImageOverview({
       <div className="human-flow image-flow">{steps.map(([number, title, detail]) => <article key={number}><i>{number}</i><div><b>{title}</b><span>{detail}</span></div></article>)}</div>
     </div>
     <div className="image-dashboard-grid image-overview-stack">
-      <div className="human-card"><div className="human-card-title"><h2>业务口径</h2><span>按你确认的实际流程整理</span></div><div className="image-policy-list">
-        <p><b>唯一索引：</b>产品编号不可重复，用于防止平台重复上传和导出重名。</p>
-        <p><b>人工位置：</b>人工选择同一产品的原始照片、填写产品档案、编辑提示词、审核并选择用于各平台的 AI 图。</p>
-        <p><b>交付范围：</b>平台只保存商品草稿；后续检查、修改、发布均在电商平台内完成。</p>
+      <div className="human-card"><div className="human-card-title"><h2>拍摄要求</h2><span>每个产品建议交付 8–12 张清晰原图，按以下机位和细节拍摄</span></div><div className="image-policy-list">
+        <p><b>正面主视图 · 2 张：</b>拍摄一张正面平视图和一张正面略俯视图，完整呈现产品轮廓，主体不要被道具或手部遮挡。</p>
+        <p><b>左右 45° · 2 张：</b>分别从产品左前方和右前方斜拍；左前 45° 同时看到正面与左侧，右前 45° 同时看到正面与右侧。</p>
+        <p><b>侧面与背面 · 2 张：</b>拍摄一个信息量较大的侧面和完整背面；接口、扣件、固定结构等不能被遮挡。</p>
+        <p><b>顶部与底部 · 1–2 张：</b>从正上方和正下方拍摄。若底部没有有效信息，可改拍连接处、扣件或其他关键结构。</p>
+        <p><b>材质与细节 · 2–3 张：</b>近距离拍清材质纹理、Logo、文字、花纹、接口及工艺细节，确保对焦准确、文字可辨认。</p>
+        <p><b>尺寸或佩戴 · 1–2 张：</b>提供带尺子或已知尺寸参照物的照片；可穿戴商品应补充真人正面和侧面佩戴图，呈现比例、位置与遮挡关系。</p>
+        <p><b>背景与光线：</b>使用干净、无杂物的中性背景和柔和均匀光线，避免强反光、过曝、严重阴影及环境杂色映到产品表面。</p>
+        <p><b>拍摄一致性：</b>所有照片必须是同一件、同一规格和同一状态的产品；尽量保持相同焦段、色温和摆放状态，不使用美颜、滤镜或拼图。</p>
+        <p><b>文件质量：</b>上传未经社交软件压缩的原始文件，产品清晰完整且占画面主体；不要添加水印、边框、贴纸或后期文字。</p>
       </div></div>
       <div className="human-card"><div className="human-card-title"><h2>批次状态</h2><span>后续接入自动批次表</span></div><div className="image-status-stack">
         <article><b>待建产品组</b><span>摄影素材库中尚未分配给产品组的原始照片</span><em>{sourceAssets.filter(item => item.status === "unassigned").length}</em></article>

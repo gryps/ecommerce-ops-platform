@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ModelProfile(BaseModel):
     stage: str
     label: str
+    provider_type: str = "openai_compatible"
+    protocol: str = "chat_completions"
+    capabilities: list[str] = Field(default_factory=list)
     base_url: str = ""
     model: str = ""
     temperature: float = 0.2

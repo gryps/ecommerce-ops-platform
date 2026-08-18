@@ -4,16 +4,34 @@
 
 当前目录用于归档并逐步整合电商运营平台的业务工作台：
 
-- `ops-workbench/`：实际运行项目，当前承载电商视频生产、电商图片生产和模型配置，只保留运行说明。
-- `commerce-video-workbench/`：电商视频生产业务文档、工程索引和历史归档。
-- `commerce-image-workbench/`：电商图片生产业务文档、交接归档。
+- `ops-workbench/`：实际运行项目，当前承载运营中心、采后中心、主播控场、投流计划、客服售后、仓库管理、财务管理、项目中心、视频生产、图片生产和模型配置，只保留运行说明。
+- `commerce-operations-workbench/`：运营中心业务文档、自动化边界和需求归档。
+- `commerce-procurement-workbench/`：采后中心业务文档、供应商、采购、质检和知识产权凭证归档。
+- `commerce-host-control-workbench/`：主播控场业务文档、直播排品、话术和下播记录归档。
+- `commerce-ad-planning-workbench/`：投流计划业务文档、预算、素材、ROI 和停投建议归档。
+- `commerce-customer-service-workbench/`：客服售后业务文档、退款、投诉和售后反向改进归档。
+- `commerce-warehouse-workbench/`：仓库管理业务文档、发货、库存、退货二销和报废归档。
+- `commerce-finance-workbench/`：财务管理业务文档、利润、现金流和成本口径归档。
+- `commerce-project-workbench/`：项目中心业务文档、经营复盘、重大确认和项目决策归档。
+- `commerce-video-workbench/`：视频生产业务文档、工程索引和历史归档。
+- `commerce-image-workbench/`：图片生产业务文档、交接归档。
 - `docs/DEVELOPMENT_COLLABORATION.md`：后续开发协作规范，记录“模块、范围、目标、禁止、验收、执行”的任务沟通方式。
+- `docs/SMALL_HOST_HANDOFF.md`：小主机部署、服务、ComfyUI 运行边界和下一阶段开发交接。
 
-当前只有 `ops-workbench/` 是可运行代码目录；`commerce-video-workbench/` 和 `commerce-image-workbench/` 是文档沉淀目录。
+当前只有 `ops-workbench/` 是可运行代码目录；`commerce-*-workbench/` 是业务文档沉淀目录。
+
+## 2.1 运营中心功能介绍
+
+运营中心面向“商品库 → 选品测品 → 上架资料 → 直播排品 → 投流复盘 → 库存利润 → 日报周报”的直播电商运营作业流：
+
+- 商品库记录候选商品、供应商、成本、售价、库存、状态和负责人。
+- 系统计算毛利、库存风险和经营指标，AI 可生成卖点、话术和复盘初稿。
+- 直播、投流、补货、发布、资金、合同和合规事项必须人工确认。
+- 运行态导入、导出、报告和临时文件统一放入 `ops-workbench-runtime/operations/`，不混入代码或文档目录。
 
 ## 2.0 图片生产功能介绍
 
-2.0 版本在原有电商视频生产、模型配置基础上，加入电商图片生产工作流：
+2.0 版本在原有视频生产、模型配置基础上，加入图片生产工作流：
 
 - 摄影师上传商品实拍原图到素材库，系统保存在独立运行目录，不混入代码目录。
 - 运营人员人工勾选同一产品的原始照片，填写唯一产品名称后创建产品组和产品档案；不使用 AI 自动分组。

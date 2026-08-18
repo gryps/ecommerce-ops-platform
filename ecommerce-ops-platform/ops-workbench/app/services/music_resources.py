@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import html
 import json
 import re
 import shutil
@@ -16,11 +15,18 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.domain.models import JianyingDraft, MusicResource
+from app.services.music_share_parser import (
+    DOUYIN_AUDIO_HOST_SUFFIXES,
+    DOUYIN_HOSTS,
+    DOUYIN_MEDIA_HOST_SUFFIXES,
+    _douyin_media_url,
+    _douyin_media_urls,
+    _douyin_video_id,
+    _extract_shared_url,
+    _is_douyin_url,
+)
 
 
-DOUYIN_HOSTS = {"douyin.com", "iesdouyin.com"}
-DOUYIN_MEDIA_HOST_SUFFIXES = (".douyinvod.com", ".idouyinvod.com")
-DOUYIN_AUDIO_HOST_SUFFIXES = (".douyinstatic.com", ".byteimg.com")
 CHROMIUM_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
@@ -146,16 +152,6 @@ def delete_music_resource(session: Session, resource_id: str) -> dict[str, objec
     return result
 
 
-def _is_douyin_url(url: str) -> bool:
-    hostname = (urlparse(url).hostname or "").lower()
-    return any(hostname == domain or hostname.endswith(f".{domain}") for domain in DOUYIN_HOSTS)
-
-
-def _extract_shared_url(value: str) -> str:
-    match = re.search(r"https?://[^\s<>'\"]+", value.strip())
-    return match.group(0).rstrip("，。；;、") if match else value.strip()
-
-
 def _find_anonymous_chromium() -> Path | None:
     for command in ("google-chrome", "chromium", "chromium-browser", "microsoft-edge"):
         resolved = shutil.which(command)
@@ -218,48 +214,6 @@ def _dump_anonymous_browser_dom(
         detail = result.stderr.decode("utf-8", errors="replace")[-500:]
         raise RuntimeError(detail or "匿名浏览器未返回页面内容")
     return document
-
-
-def _douyin_video_id(document: str) -> str:
-    match = re.search(r"(?:douyin\.com/video/|/video/)(\d{10,})", document)
-    return match.group(1) if match else ""
-
-
-def _douyin_media_urls(document: str) -> list[str]:
-    decoded = html.unescape(document).replace(r"\u002F", "/").replace(r"\/", "/")
-    candidates = re.findall(
-        r'<audio\b[^>]*?\bsrc="(https://[^"]+)"',
-        decoded,
-        flags=re.IGNORECASE,
-    )
-    candidates.extend(re.findall(
-        r'<(?:video|source)\b[^>]*?\bsrc="(https://[^"]+)"',
-        decoded,
-        flags=re.IGNORECASE,
-    ))
-    candidates.extend(re.findall(
-        r'https://[^"\s<>]+(?:ies-music|music-play|music/)[^"\s<>]*',
-        decoded,
-        flags=re.IGNORECASE,
-    ))
-    candidates.extend(re.findall(r'(?:src|href)="(https://[^"]+)"', decoded))
-    trusted: list[str] = []
-    for encoded_url in candidates:
-        url = html.unescape(encoded_url)
-        hostname = (urlparse(url).hostname or "").lower()
-        path = urlparse(url).path.lower()
-        trusted_video = any(hostname.endswith(suffix) for suffix in DOUYIN_MEDIA_HOST_SUFFIXES)
-        trusted_audio = any(hostname.endswith(suffix) for suffix in DOUYIN_AUDIO_HOST_SUFFIXES) and any(
-            marker in path for marker in ("ies-music", "music-play", "/music/", "musically-maliva-obj")
-        )
-        if trusted_video or trusted_audio:
-            trusted.append(url)
-    return list(dict.fromkeys(trusted))
-
-
-def _douyin_media_url(document: str) -> str:
-    urls = _douyin_media_urls(document)
-    return urls[0] if urls else ""
 
 
 def _download_douyin_media(url: str, target: Path) -> None:

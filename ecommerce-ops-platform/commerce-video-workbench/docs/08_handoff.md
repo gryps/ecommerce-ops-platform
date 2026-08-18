@@ -127,3 +127,84 @@ curl --max-time 5 -sS http://127.0.0.1:8000/api/health
 ```
 
 如果任务只涉及视频生产，应明确写出“不改电商图片生产、不改模型配置”。
+
+## 10. 本阶段收口：小主机迁移与 ComfyUI 画布
+
+本地项目当前阶段告一段落，但不是整个平台完结。经营看板、运营中心、采后中心、主播控场、投流计划、客服售后、仓库管理、财务管理、项目中心、图片生产、视频生产、模型配置等模块仍会在后续继续完成。
+
+当前已完成的小主机迁移结果：
+
+```text
+小主机：gryps@192.168.31.24
+电商运营平台：http://192.168.31.24:8000/workbench/
+ComfyUI：http://192.168.31.24:8188/
+平台服务：product-video-automation，active
+ComfyUI 服务：comfyui，active
+运行根目录：/home/gryps/apps/ecommerce-ops-platform
+运行态目录：/home/gryps/apps/ecommerce-ops-platform/ops-workbench-runtime
+开发主环境：小主机本地 Git 工作树
+当前数据库版本：n06g8h0i3j47
+```
+
+详细部署交接见：
+
+```text
+/home/gryps/apps/ecommerce-ops-platform/docs/SMALL_HOST_HANDOFF.md
+```
+
+已完成的方向性决策：
+
+- AI 宣传片后续引入 ComfyUI 风格画布，用画布表达资产、导演、分镜、任务、导出等生产逻辑。
+- 电商平台仍作为业务资产、项目状态、成本、任务记录和人工确认入口；ComfyUI 不替代业务系统。
+- ComfyUI 用作工作流编排和可视化参考，不直接承载电商运营平台的业务数据库。
+- 后续视频生成重点转向模型 API 辅助，不要求本地显卡和本地大模型资源。
+- 小主机适合作为平台服务器和 ComfyUI/API 中控，不适合作为本地 AI 推理算力机器。
+- AI 宣传片数据已从 JSON 原型文件迁入 SQLite 表；后续任务、事件、结果回收都应继续走数据库。
+- 后端已建立 ComfyUI 任务提交边界；占位 workflow 会明确失败并记录事件，真实 API workflow 接入后复用同一入口。
+- 前端平台壳层已拆出：导航配置、侧边栏、顶部状态栏、账号弹窗分别位于 `ops-workbench/frontend/src/components/shell/`；壳层和登录样式位于 `ops-workbench/frontend/src/styles/`。
+
+当前 ComfyUI 小主机状态：
+
+```text
+ComfyUI 源码：/home/gryps/apps/ComfyUI
+启动脚本：/home/gryps/apps/run-comfyui-smallhost.sh
+运行态目录：/home/gryps/apps/ecommerce-ops-platform/ops-workbench-runtime/comfyui
+模型目录：/home/gryps/apps/ecommerce-ops-platform/ops-workbench-runtime/comfyui/models
+访问地址：http://192.168.31.24:8188/
+Python：/home/gryps/runtime/python/current，Python 3.12.14
+虚拟环境：/home/gryps/apps/ComfyUI/.venv
+PyTorch：2.6.0+cpu
+```
+
+注意：
+
+- 远端 ComfyUI models 目录不应存放本地视频大模型权重。
+- 不要为了文生视频、图生视频再下载本地大模型包；后续优先通过模型 API 节点或后端 adapter 调用外部视频模型。
+- ComfyUI 冷启动仍可能需要几十秒。慢点主要在 Python、PyTorch CPU 包、节点定义、前端包、SQLite 迁移和资源服务初始化，不代表正在加载本地视频模型。
+- 如果页面再次出现默认工作流，优先检查浏览器缓存、Service Worker、ComfyUI 前端本地状态和模板/blueprint 设置，而不是下载模型。
+
+## 11. 下一阶段：围绕 ComfyUI 制作文生视频、图生视频
+
+下一阶段近期重点是围绕 ComfyUI 制作文生视频、图生视频；平台其他未完成模块后续按业务优先级继续推进。
+
+ComfyUI 视频方向工作重点：
+
+1. 梳理文生视频、图生视频的业务输入字段：商品资产、卖点、导演意图、镜头时长、画幅、风格、人物/产品一致性、参考图、首帧/尾帧等。
+2. 在平台侧定义标准任务模型和 API adapter，不把厂商调用逻辑和敏感凭证写死在画布 JSON 里。
+3. 在 ComfyUI 侧制作最小可用 workflow：文生视频 workflow、图生视频 workflow、首帧/尾帧辅助 workflow。
+4. 建立平台字段到 ComfyUI 节点参数的映射表。
+5. 明确输出回收规则：视频文件、封面图、prompt、厂商任务 ID、成本、错误原因、重试记录。
+6. 再把成熟 workflow 接回 AI 宣传片页面，形成“平台录入资产和任务，画布呈现与调参，平台记录生产结果”的闭环。
+
+当前建议不要继续扩大前端页面，先做一个真实模型 API adapter。adapter 要记录厂商任务 ID、请求参数摘要、错误原因、耗时和输出文件路径；API Key 继续放后端配置，不写入 ComfyUI workflow JSON。
+
+建议下一次开发先从一个最小闭环开始：
+
+```text
+模块：AI 宣传片 / ComfyUI 视频工作流
+范围：只做文生视频或只做图生视频二选一
+目标：平台录入参数 -> ComfyUI/API 提交任务 -> 回收结果 -> 在平台任务记录中展示
+禁止：不下载本地大模型；不改图片生产；不改运营中心导航；不把 API Key 写入 workflow JSON
+验收：能用一个真实模型 API 跑通一次任务，并记录输入、输出、厂商任务 ID、耗时和错误信息
+执行：先设计字段和 adapter，再接画布
+```

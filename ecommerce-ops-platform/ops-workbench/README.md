@@ -1,6 +1,6 @@
 # 电商运营平台运行目录
 
-`ops-workbench` 是当前可运行代码目录，承载电商视频生产、电商图片生产和模型配置。
+`ops-workbench` 是当前可运行代码目录，承载运营中心、采后中心、主播控场、投流计划、客服售后、仓库管理、财务管理、项目中心、视频生产、图片生产和模型配置。
 
 当前版本：2.0.0
 
@@ -8,6 +8,14 @@
 
 - 视频生产：`../commerce-video-workbench/`
 - 图片生产：`../commerce-image-workbench/`
+- 运营中心：`../commerce-operations-workbench/`
+- 采后中心：`../commerce-procurement-workbench/`
+- 主播控场：`../commerce-host-control-workbench/`
+- 投流计划：`../commerce-ad-planning-workbench/`
+- 客服售后：`../commerce-customer-service-workbench/`
+- 仓库管理：`../commerce-warehouse-workbench/`
+- 财务管理：`../commerce-finance-workbench/`
+- 项目中心：`../commerce-project-workbench/`
 - 运行代码模块上下文：`docs/modules/`
 - 后续开发协作规范：`../docs/DEVELOPMENT_COLLABORATION.md`
 - 全局口径：`/mnt/e/codexwork/PROJECT_MEMORY.md`
@@ -26,10 +34,45 @@
 PVA_RUNTIME_DIR=/mnt/e/codexwork/ecommerce-ops-platform/ops-workbench-runtime
 PVA_WORKSPACE_DIR=/mnt/e/codexwork/ecommerce-ops-platform/ops-workbench-runtime/workspace
 PVA_STATIC_DIR=/mnt/e/codexwork/ecommerce-ops-platform/ops-workbench-runtime/static-workbench
+PVA_OPERATIONS_RUNTIME_DIR=/mnt/e/codexwork/ecommerce-ops-platform/ops-workbench-runtime/operations
 PVA_WORKBENCH_DATABASE_URL=sqlite:////mnt/e/codexwork/ecommerce-ops-platform/ops-workbench-runtime/databases/workbench.db
 ```
 
 本机 `.env` 放在 `../ops-workbench-runtime/.env`，不放在代码目录内。如果 `.env` 中配置了 `PVA_WORKBENCH_DATABASE_URL`，系统优先使用该数据库连接；否则默认使用 `../ops-workbench-runtime/databases/workbench.db`。
+
+运营中心运行态文件统一放在：
+
+```text
+../ops-workbench-runtime/operations/
+├── imports/   # 订单、退款、投流、库存等人工导入文件
+├── exports/   # 执行表、CSV、Excel 等导出文件
+├── reports/   # 日报、周报、阶段复盘报告
+└── temp/      # 临时处理中间文件
+```
+
+岗位中心运行态文件按一级中心归类：
+
+```text
+../ops-workbench-runtime/
+├── procurement/       # 采后中心
+├── host-control/      # 主播控场
+├── ad-planning/       # 投流计划
+├── customer-service/  # 客服售后
+├── warehouse/         # 仓库管理
+├── finance/           # 财务管理
+└── project/           # 项目中心
+```
+
+每个一级中心下统一使用：
+
+```text
+imports/   # 人工导入、平台导出、截图表格等输入文件
+exports/   # 执行表、CSV、Excel 等导出文件
+reports/   # 复盘、核算、阶段报告
+temp/      # 临时处理中间文件
+```
+
+代码、业务文档和运行态文件必须分离；新增导入、导出、报告能力时不得写入 `ops-workbench/` 或业务文档目录。
 
 ## 本地运行
 

@@ -90,6 +90,131 @@ class WorkbenchSetting(Base):
     )
 
 
+class OpsProduct(Base):
+    __tablename__ = "wb_ops_products"
+    __table_args__ = (
+        UniqueConstraint("product_code", name="uq_wb_ops_products_code"),
+        Index("ix_wb_ops_products_status_name", "status", "name"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
+    product_code: Mapped[str] = mapped_column(String(40), nullable=False)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    category: Mapped[str] = mapped_column(String(80), nullable=False, default="")
+    style_tags: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    supplier_name: Mapped[str] = mapped_column(String(160), nullable=False, default="")
+    supplier_link: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    purchase_cost_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=40.0)
+    target_sale_price_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=160.0)
+    actual_sale_price_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=160.0)
+    stock_qty: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    inbound_qty: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    procurement_cycle_days: Mapped[int] = mapped_column(Integer, nullable=False, default=7)
+    status: Mapped[str] = mapped_column(String(30), nullable=False, default="candidate")
+    selection_grade: Mapped[str] = mapped_column(String(20), nullable=False, default="")
+    owner: Mapped[str] = mapped_column(String(80), nullable=False, default="")
+    notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class OpsLiveSession(Base):
+    __tablename__ = "wb_ops_live_sessions"
+    __table_args__ = (Index("ix_wb_ops_live_sessions_date_status", "live_date", "status"),)
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
+    live_date: Mapped[date] = mapped_column(Date, nullable=False)
+    anchor: Mapped[str] = mapped_column(String(80), nullable=False, default="")
+    start_time: Mapped[str] = mapped_column(String(20), nullable=False, default="")
+    end_time: Mapped[str] = mapped_column(String(20), nullable=False, default="")
+    target_orders: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    target_gmv_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    actual_orders: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    actual_gmv_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    ad_spend_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    status: Mapped[str] = mapped_column(String(30), nullable=False, default="planned")
+    review_summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class OpsLiveProduct(Base):
+    __tablename__ = "wb_ops_live_products"
+    __table_args__ = (
+        Index("ix_wb_ops_live_products_session_order", "session_id", "order_index"),
+        Index("ix_wb_ops_live_products_product", "product_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
+    session_id: Mapped[str] = mapped_column(ForeignKey("wb_ops_live_sessions.id", ondelete="CASCADE"), nullable=False)
+    product_id: Mapped[str] = mapped_column(ForeignKey("wb_ops_products.id", ondelete="CASCADE"), nullable=False)
+    product_role: Mapped[str] = mapped_column(String(40), nullable=False, default="test")
+    order_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    planned_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
+    actual_orders: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    actual_gmv_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    refund_orders: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    refund_amount_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    estimated_profit_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    action_suggestion: Mapped[str] = mapped_column(String(80), nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class OpsAdPlan(Base):
+    __tablename__ = "wb_ops_ad_plans"
+    __table_args__ = (
+        Index("ix_wb_ops_ad_plans_date_stage", "ad_date", "traffic_stage"),
+        Index("ix_wb_ops_ad_plans_product", "product_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
+    ad_date: Mapped[date] = mapped_column(Date, nullable=False)
+    platform: Mapped[str] = mapped_column(String(80), nullable=False, default="douyin")
+    plan_name: Mapped[str] = mapped_column(String(160), nullable=False)
+    promotion_type: Mapped[str] = mapped_column(String(40), nullable=False, default="live_room")
+    traffic_stage: Mapped[str] = mapped_column(String(40), nullable=False, default="cold_start")
+    objective: Mapped[str] = mapped_column(String(80), nullable=False, default="")
+    budget_type: Mapped[str] = mapped_column(String(40), nullable=False, default="daily")
+    planned_budget_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    actual_spend_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    paid_gmv_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    net_gmv_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    paid_orders: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    product_id: Mapped[str | None] = mapped_column(ForeignKey("wb_ops_products.id", ondelete="SET NULL"), nullable=True)
+    live_session_id: Mapped[str | None] = mapped_column(ForeignKey("wb_ops_live_sessions.id", ondelete="SET NULL"), nullable=True)
+    material_ref: Mapped[str] = mapped_column(String(160), nullable=False, default="")
+    anchor: Mapped[str] = mapped_column(String(80), nullable=False, default="")
+    operator_decision: Mapped[str] = mapped_column(String(80), nullable=False, default="")
+    decision_reason: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class OpsDailyMetric(Base):
+    __tablename__ = "wb_ops_daily_metrics"
+    __table_args__ = (
+        UniqueConstraint("metric_date", "product_id", name="uq_wb_ops_daily_metrics_product_date"),
+        Index("ix_wb_ops_daily_metrics_date", "metric_date"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
+    metric_date: Mapped[date] = mapped_column(Date, nullable=False)
+    product_id: Mapped[str | None] = mapped_column(ForeignKey("wb_ops_products.id", ondelete="SET NULL"), nullable=True)
+    paid_orders: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    paid_gmv_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    refund_orders: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    refund_amount_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    ad_spend_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    logistics_cost_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    freight_insurance_cost_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    packaging_cost_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    estimated_profit_yuan: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    review_note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
 class ModelCallLog(Base):
     __tablename__ = "wb_model_call_logs"
     __table_args__ = (
@@ -504,6 +629,108 @@ class VoicePreviewAsset(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )
+
+
+class AiVideoProject(Base):
+    __tablename__ = "wb_ai_video_projects"
+    __table_args__ = (Index("ix_wb_ai_video_projects_status_created", "status", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    product_name: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    selling_points: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    audience: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    tone: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(30), nullable=False, default="draft")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+
+
+class AiVideoAsset(Base):
+    __tablename__ = "wb_ai_video_assets"
+    __table_args__ = (
+        Index("ix_wb_ai_video_assets_project_kind", "project_id", "kind"),
+        Index("ix_wb_ai_video_assets_created", "created_at"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
+    project_id: Mapped[str] = mapped_column(
+        ForeignKey("wb_ai_video_projects.id", ondelete="CASCADE"), nullable=False
+    )
+    kind: Mapped[str] = mapped_column(String(40), nullable=False)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    file_path: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    preview_url: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+
+
+class AiVideoShot(Base):
+    __tablename__ = "wb_ai_video_shots"
+    __table_args__ = (
+        Index("ix_wb_ai_video_shots_project_order", "project_id", "order_index"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
+    project_id: Mapped[str] = mapped_column(
+        ForeignKey("wb_ai_video_projects.id", ondelete="CASCADE"), nullable=False
+    )
+    order_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    duration_seconds: Mapped[float] = mapped_column(Float, nullable=False, default=3.0)
+    visual_goal: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    camera: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    prompt: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    negative_prompt: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    required_asset_kinds: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+
+
+class AiVideoGenerationTask(Base):
+    __tablename__ = "wb_ai_video_generation_tasks"
+    __table_args__ = (
+        Index("ix_wb_ai_video_tasks_project_status", "project_id", "status"),
+        Index("ix_wb_ai_video_tasks_created", "created_at"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
+    project_id: Mapped[str] = mapped_column(
+        ForeignKey("wb_ai_video_projects.id", ondelete="CASCADE"), nullable=False
+    )
+    engine: Mapped[str] = mapped_column(String(40), nullable=False)
+    workflow_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    prompt: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    input_asset_ids: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    provider_task_id: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(30), nullable=False, default="draft")
+    output_paths: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    error: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+
+
+class AiVideoTaskEvent(Base):
+    __tablename__ = "wb_ai_video_task_events"
+    __table_args__ = (Index("ix_wb_ai_video_task_events_task_created", "task_id", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uuid_hex)
+    task_id: Mapped[str] = mapped_column(
+        ForeignKey("wb_ai_video_generation_tasks.id", ondelete="CASCADE"), nullable=False
+    )
+    event_type: Mapped[str] = mapped_column(String(60), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
 class JianyingDraft(Base):
