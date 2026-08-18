@@ -4,7 +4,8 @@
 
 ## 边界
 
-- 当前保持独立运行架构：静态 H5 前端、Python 标准库 HTTP API、SQLite 数据库。
+- 当前保持独立运行架构：静态 H5 前端、Python HTTP API、独立数据库。
+- 本地默认使用 SQLite；服务器可通过 `WMS_DATABASE_URL` 切换到 PostgreSQL/RDS。
 - 本目录只放可维护源码和交接文档。
 - 数据库、备份、日志和环境文件放到 `../../ops-workbench-runtime/warehouse/mobile-wms/` 或服务器运行目录，不纳入 Git。
 - 证书私钥不进入仓库；nginx 配置只保留证书路径。
@@ -28,3 +29,10 @@ python3 api.py
 export WMS_INITIAL_ADMIN_PASSWORD='换成服务器本地保存的强密码'
 ```
 
+## 服务器 PostgreSQL
+
+```bash
+export WMS_DATABASE_URL='postgresql://用户:密码@RDS私网地址:5432/业务库'
+export WMS_INITIAL_ADMIN_PASSWORD='换成服务器本地保存的强密码'
+python3 api.py
+```
