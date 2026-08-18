@@ -44,6 +44,8 @@
 核心文件：
 
 - `/opt/wms-h5/index.html`：前端 H5 页面
+- `/opt/wms-h5/assets/styles.css`：前端样式
+- `/opt/wms-h5/assets/app.js`：前端交互逻辑
 - `/opt/wms-h5/api.py`：Python 后端 API
 - `/opt/wms-h5/wms.db`：SQLite 数据库
 - `/etc/nginx/sites-available/wms-h5`：nginx 站点配置
@@ -433,4 +435,3 @@ PY
 - 是否能重启 `wms-api`
 - 是否能备份 `/opt/wms-h5/wms.db`
 - 是否准备启用 HTTPS
-

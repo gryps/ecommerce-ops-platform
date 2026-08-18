@@ -12,9 +12,17 @@
 
 ## 文件
 
-- `index.html`：移动端 H5 前端。
+- `index.html`：移动端 H5 页面骨架，只保留结构和资源引用。
+- `assets/styles.css`：移动端样式。
+- `assets/app.js`：移动端交互、页面渲染和 API 调用。
 - `api.py`：后端 API。
 - `WMS_HANDOVER.md`：线上系统交接说明。
+
+## 前端维护约定
+
+- 页面结构、样式、交互分开维护，避免再把 CSS/JS 内联回 `index.html`。
+- 移动入口页、仓储业务页、用户权限页的业务入口先集中在 `assets/app.js`，后续功能增多时再按模块继续拆分。
+- 新增静态资源放入 `assets/`，部署时与 `index.html` 一起同步到 `/opt/wms-h5/`。
 
 ## 本地运行
 
